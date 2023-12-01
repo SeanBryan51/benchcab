@@ -10,24 +10,20 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Optional
 
-from benchcab import internal
+from benchcab import fluxsite, internal, spatial
 from benchcab.comparison import run_comparisons, run_comparisons_in_parallel
 from benchcab.config import read_config
 from benchcab.environment_modules import EnvironmentModules, EnvironmentModulesInterface
-from benchcab.fluxsite import (
-    Task,
-    get_fluxsite_comparisons,
-    get_fluxsite_tasks,
-    run_tasks,
-    run_tasks_in_parallel,
-)
 from benchcab.internal import get_met_forcing_file_names
 from benchcab.model import Model
 from benchcab.utils.fs import mkdir, next_path
 from benchcab.utils.pbs import render_job_script
 from benchcab.utils.repo import SVNRepo, create_repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-from benchcab.workdir import setup_fluxsite_directory_tree
+from benchcab.workdir import (
+    setup_fluxsite_directory_tree,
+    setup_spatial_directory_tree,
+)
 
 
 class Benchcab:
@@ -46,7 +42,8 @@ class Benchcab:
 
         self._config: Optional[dict] = None
         self._models: list[Model] = []
-        self.tasks: list[Task] = []  # initialise fluxsite tasks lazily
+        self._fluxsite_tasks: list[fluxsite.FluxsiteTask] = []
+        self._spatial_tasks: list[spatial.SpatialTask] = []
 
     def _validate_environment(self, project: str, modules: list):
         """Performs checks on current user environment."""
@@ -113,20 +110,34 @@ class Benchcab:
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models
 
-    def _initialise_tasks(self, config: dict) -> list[Task]:
-        """A helper method that initialises and returns the `tasks` attribute."""
-        self.tasks = get_fluxsite_tasks(
-            models=self._get_models(config),
-            science_configurations=config.get(
-                "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
-            ),
-            fluxsite_forcing_file_names=get_met_forcing_file_names(
-                config.get("fluxsite", {}).get(
-                    "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
-                )
-            ),
-        )
-        return self.tasks
+    def _get_fluxsite_tasks(self, config: dict) -> list[fluxsite.FluxsiteTask]:
+        if not self._fluxsite_tasks:
+            self._fluxsite_tasks = fluxsite.get_fluxsite_tasks(
+                models=self._get_models(config),
+                science_configurations=config.get(
+                    "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
+                ),
+                fluxsite_forcing_file_names=get_met_forcing_file_names(
+                    config.get("fluxsite", {}).get(
+                        "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
+                    )
+                ),
+            )
+        return self._fluxsite_tasks
+
+    def _get_spatial_tasks(self, config) -> list[spatial.SpatialTask]:
+        if not self._spatial_tasks:
+            self._spatial_tasks = spatial.get_spatial_tasks(
+                models=self._get_models(config),
+                met_forcings=config.get("spatial", {}).get(
+                    "met_forcings", internal.SPATIAL_DEFAULT_MET_FORCINGS
+                ),
+                science_configurations=config.get(
+                    "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
+                ),
+                payu_args=config.get("spatial", {}).get("payu", {}).get("args"),
+            )
+        return self._spatial_tasks
 
     def validate_config(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab validate_config`."""
@@ -179,6 +190,7 @@ class Benchcab:
             "The NetCDF output for each task is written to "
             f"{internal.FLUXSITE_DIRS['OUTPUT']}/<task_name>_out.nc"
         )
+        print("")
 
     def checkout(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab checkout`."""
@@ -208,7 +220,7 @@ class Benchcab:
 
         print("")
 
-    def build(self, config_path: str, verbose: bool):
+    def build(self, config_path: str, verbose: bool, mpi=False):
         """Endpoint for `benchcab build`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
@@ -221,11 +233,11 @@ class Benchcab:
                 )
                 repo.custom_build(modules=config["modules"], verbose=verbose)
             else:
-                build_mode = "with MPI" if internal.MPI else "serially"
+                build_mode = "with MPI" if mpi else "serially"
                 print(f"Compiling CABLE {build_mode} for realisation {repo.name}...")
-                repo.pre_build(verbose=verbose)
-                repo.run_build(modules=config["modules"], verbose=verbose)
-                repo.post_build(verbose=verbose)
+                repo.pre_build(verbose=verbose, mpi=mpi)
+                repo.run_build(modules=config["modules"], verbose=verbose, mpi=mpi)
+                repo.post_build(verbose=verbose, mpi=mpi)
             print(f"Successfully compiled CABLE for realisation {repo.name}")
         print("")
 
@@ -234,11 +246,10 @@ class Benchcab:
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
 
-        tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         print("Setting up run directory tree for fluxsite tests...")
         setup_fluxsite_directory_tree(verbose=verbose)
         print("Setting up tasks...")
-        for task in tasks:
+        for task in self._get_fluxsite_tasks(config):
             task.setup_task(verbose=verbose)
         print("Successfully setup fluxsite tasks")
         print("")
@@ -247,8 +258,8 @@ class Benchcab:
         """Endpoint for `benchcab fluxsite-run-tasks`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
+        tasks = self._get_fluxsite_tasks(config)
 
-        tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         print("Running fluxsite tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
@@ -258,9 +269,9 @@ class Benchcab:
             ncpus = config.get("pbs", {}).get(
                 "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
             )
-            run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
+            fluxsite.run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
-            run_tasks(tasks, verbose=verbose)
+            fluxsite.run_tasks(tasks, verbose=verbose)
         print("Successfully ran fluxsite tasks")
         print("")
 
@@ -274,8 +285,9 @@ class Benchcab:
                 "nccmp/1.8.5.0"
             )  # use `nccmp -df` for bitwise comparisons
 
-        tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        comparisons = get_fluxsite_comparisons(tasks)
+        comparisons = fluxsite.get_fluxsite_comparisons(
+            self._get_fluxsite_tasks(config)
+        )
 
         print("Running comparison tasks...")
         try:
@@ -306,10 +318,46 @@ class Benchcab:
         else:
             self.fluxsite_submit_job(config_path, verbose, skip)
 
-    def spatial(self, config_path: str, verbose: bool):
-        """Endpoint for `benchcab spatial`."""
+    def spatial_setup_work_directory(self, config_path: str, verbose: bool):
+        """Endpoint for `benchcab spatial-setup-work-dir`."""
+        config = self._get_config(config_path)
+        self._validate_environment(project=config["project"], modules=config["modules"])
 
-    def run(self, config_path: str, no_submit: bool, verbose: bool, skip: list[str]):
+        print("Setting up run directory tree for spatial tests...")
+        setup_spatial_directory_tree()
+        print("Setting up tasks...")
+        try:
+            payu_config = config["spatial"]["payu"]["config"]
+        except KeyError:
+            payu_config = None
+        for task in self._get_spatial_tasks(config):
+            task.setup_task(payu_config=payu_config, verbose=verbose)
+        print("Successfully setup spatial tasks")
+        print("")
+
+    def spatial_run_tasks(self, config_path: str, verbose: bool):
+        """Endpoint for `benchcab spatial-run-tasks`."""
+        config = self._get_config(config_path)
+        self._validate_environment(project=config["project"], modules=config["modules"])
+
+        print("Running spatial tasks...")
+        spatial.run_tasks(tasks=self._get_spatial_tasks(config), verbose=verbose)
+        print("Successfully dispatched payu jobs")
+        print("")
+
+    def spatial(self, config_path: str, verbose: bool, skip: list):
+        """Endpoint for `benchcab spatial`."""
+        self.checkout(config_path, verbose)
+        self.build(config_path, verbose, mpi=True)
+        self.spatial_setup_work_directory(config_path, verbose)
+        self.spatial_run_tasks(config_path, verbose)
+
+    def run(self, config_path: str, verbose: bool, skip: list[str]):
         """Endpoint for `benchcab run`."""
-        self.fluxsite(config_path, no_submit, verbose, skip)
-        self.spatial(config_path, verbose)
+        self.checkout(config_path, verbose)
+        self.build(config_path, verbose)
+        self.build(config_path, verbose, mpi=True)
+        self.fluxsite_setup_work_directory(config_path, verbose)
+        self.spatial_setup_work_directory(config_path, verbose)
+        self.fluxsite_submit_job(config_path, verbose, skip)
+        self.spatial_run_tasks(config_path, verbose)

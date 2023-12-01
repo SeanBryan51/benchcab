@@ -90,6 +90,20 @@ def config():
             },
             "multiprocessing": True,
         },
+        "spatial": {
+            "met_forcings": {
+                "crujra_access": "https://github.com/CABLE-LSM/cable_example.git",
+                "gswp": "foo",
+            },
+            "payu": {
+                "config": {
+                    "ncpus": 16,
+                    "walltime": "1:00:00",
+                    "mem": "64GB",
+                },
+                "args": "-n 2",
+            },
+        },
     }
 
 

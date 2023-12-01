@@ -57,10 +57,14 @@ class Model:
     def model_id(self, value: int):
         self._model_id = value
 
-    def get_exe_path(self) -> Path:
+    def get_exe_path(self, mpi=False) -> Path:
         """Return the path to the built executable."""
         return (
-            internal.SRC_DIR / self.name / self.src_dir / "offline" / internal.CABLE_EXE
+            internal.SRC_DIR
+            / self.name
+            / self.src_dir
+            / "offline"
+            / (internal.CABLE_MPI_EXE if mpi else internal.CABLE_EXE)
         )
 
     def custom_build(self, modules: list[str], verbose=False):
@@ -100,10 +104,14 @@ class Model:
                 verbose=verbose,
             )
 
-    def pre_build(self, verbose=False):
+    def pre_build(self, mpi=False, verbose=False):
         """Runs CABLE pre-build steps."""
         path_to_repo = internal.SRC_DIR / self.name
-        tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
+        tmp_dir = (
+            path_to_repo
+            / self.src_dir
+            / (internal.TMP_BUILD_DIR_MPI if mpi else internal.TMP_BUILD_DIR)
+        )
         if not tmp_dir.exists():
             if verbose:
                 print(f"mkdir {tmp_dir}")
@@ -121,10 +129,14 @@ class Model:
             verbose=verbose,
         )
 
-    def run_build(self, modules: list[str], verbose=False):
+    def run_build(self, modules: list[str], mpi=False, verbose=False):
         """Runs CABLE build scripts."""
         path_to_repo = internal.SRC_DIR / self.name
-        tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
+        tmp_dir = (
+            path_to_repo
+            / self.src_dir
+            / (internal.TMP_BUILD_DIR_MPI if mpi else internal.TMP_BUILD_DIR)
+        )
 
         with chdir(tmp_dir), self.modules_handler.load(modules, verbose=verbose):
             env = os.environ.copy()
@@ -133,20 +145,25 @@ class Model:
             env["CFLAGS"] = "-O2 -fp-model precise"
             env["LDFLAGS"] = f"-L{env['NETCDF_ROOT']}/lib/Intel -O0"
             env["LD"] = "-lnetcdf -lnetcdff"
-            env["FC"] = "mpif90" if internal.MPI else "ifort"
+            env["FC"] = "mpif90" if mpi else "ifort"
 
             self.subprocess_handler.run_cmd(
-                "make mpi" if internal.MPI else "make", env=env, verbose=verbose
+                "make mpi" if mpi else "make", env=env, verbose=verbose
             )
 
-    def post_build(self, verbose=False):
+    def post_build(self, mpi=False, verbose=False):
         """Runs CABLE post-build steps."""
         path_to_repo = internal.SRC_DIR / self.name
-        tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
+        tmp_dir = (
+            path_to_repo
+            / self.src_dir
+            / (internal.TMP_BUILD_DIR_MPI if mpi else internal.TMP_BUILD_DIR)
+        )
+        exe = internal.CABLE_MPI_EXE if mpi else internal.CABLE_EXE
 
         rename(
-            tmp_dir / internal.CABLE_EXE,
-            path_to_repo / self.src_dir / "offline" / internal.CABLE_EXE,
+            tmp_dir / exe,
+            path_to_repo / self.src_dir / "offline" / exe,
             verbose=verbose,
         )
 
