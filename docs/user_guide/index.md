@@ -40,15 +40,6 @@ You need to load the module on each new session at NCI on login or compute nodes
 
 The regression and new feature run modes should be used as necessary when evaluating new developments in CABLE.
 
-The `benchcab` tool:
-
-- checks out the model versions specified by the user
-- builds the required executables
-- runs each model version across N standard science configurations for a variety of meteorological forcings
-- performs bitwise comparison checks on model outputs across model versions
-
-The user can then pipe the model outputs into a benchmark analysis via [modelevaluation.org][meorg] to assess model performance.
-
 ### Create a work directory
 
 #### Choose a location
