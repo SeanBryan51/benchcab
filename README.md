@@ -19,7 +19,7 @@ The full documentation is available at [benchcab.readthedocs.io][docs].
 `benchcab` currently tests the following model configurations for CABLE:
 
 - **Flux site simulations (offline)** - running CABLE forced with observed eddy covariance data at a single site
-- **Global/regional simulations (offline)** - running CABLE forced with observational products over a region (global or regional)
+- **Global/regional simulations (offline)** - running CABLE forced with meteorological fields over a region (global or regional)
 
 ## License
 
