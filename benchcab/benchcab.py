@@ -28,6 +28,7 @@ from benchcab.utils.pbs import render_job_script
 from benchcab.utils.repo import SVNRepo, create_repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 from benchcab.workdir import setup_fluxsite_directory_tree
+from benchcab.utils import get_logger
 
 
 class Benchcab:
@@ -48,35 +49,38 @@ class Benchcab:
         self._models: list[Model] = []
         self.tasks: list[Task] = []  # initialise fluxsite tasks lazily
 
+        # Get the logger object
+        self.logger = get_logger()
+
     def _validate_environment(self, project: str, modules: list):
         """Performs checks on current user environment."""
         if not self.validate_env:
             return
 
         if "gadi.nci" not in internal.NODENAME:
-            print("Error: benchcab is currently implemented only on Gadi")
+            self.logger.error("benchcab is currently implemented only on Gadi")
             sys.exit(1)
 
         namelist_dir = Path(internal.CWD / internal.NAMELIST_DIR)
         if not namelist_dir.exists():
-            print(
-                "Error: cannot find 'namelists' directory in current working directory"
+            self.logger.error(
+                "Cannot find 'namelists' directory in current working directory"
             )
             sys.exit(1)
 
         required_groups = [project, "ks32", "hh5"]
         groups = [grp.getgrgid(gid).gr_name for gid in os.getgroups()]
         if not set(required_groups).issubset(groups):
-            print(
-                "Error: user does not have the required group permissions.",
-                "The required groups are:",
-                ", ".join(required_groups),
-            )
+            self.logger.error([
+                'User does not have the required group permissions.',
+                'The required groups are:',
+                ' ,'.join(required_groups)
+            ])
             sys.exit(1)
 
         for modname in modules:
             if not self.modules_handler.module_is_avail(modname):
-                print(f"Error: module ({modname}) is not available.")
+                self.logger.error(f"Module ({modname}) is not available.")
                 sys.exit(1)
 
         all_site_ids = set(
@@ -86,14 +90,14 @@ class Benchcab:
         for site_id in all_site_ids:
             paths = list(internal.MET_DIR.glob(f"{site_id}*"))
             if not paths:
-                print(
-                    f"Error: failed to infer met file for site id '{site_id}' in "
+                self.logger.error([
+                    f"Failed to infer met file for site id '{site_id}' in "
                     f"{internal.MET_DIR}."
-                )
+                ])
                 sys.exit(1)
             if len(paths) > 1:
-                print(
-                    f"Error: multiple paths infered for site id: '{site_id}' in {internal.MET_DIR}."
+                self.logger.error(
+                    f"Multiple paths infered for site id: '{site_id}' in {internal.MET_DIR}."
                 )
                 sys.exit(1)
 
@@ -143,10 +147,10 @@ class Benchcab:
             raise RuntimeError(msg)
 
         job_script_path = Path(internal.QSUB_FNAME)
-        print(
+        self.logger.debug([
             "Creating PBS job script to run fluxsite tasks on compute "
             f"nodes: {job_script_path}"
-        )
+        ])
         with job_script_path.open("w", encoding="utf-8") as file:
             contents = render_job_script(
                 project=config["project"],
@@ -166,19 +170,20 @@ class Benchcab:
                 verbose=verbose,
             )
         except CalledProcessError as exc:
-            print("Error when submitting job to NCI queue")
-            print(exc.output)
+            self.logger.error("when submitting job to NCI queue, details to follow")
+            self.logger.error(exc.output)
             raise
 
-        print(
-            f"PBS job submitted: {proc.stdout.strip()}\n"
-            "The CABLE log file for each task is written to "
-            f"{internal.FLUXSITE_DIRS['LOG']}/<task_name>_log.txt\n"
-            "The CABLE standard output for each task is written to "
-            f"{internal.FLUXSITE_DIRS['TASKS']}/<task_name>/out.txt\n"
-            "The NetCDF output for each task is written to "
+        self.logger.debug([
+            f"PBS job submitted: {proc.stdout.strip()}",
+            "The CABLE log file for each task is written to",
+            f"{internal.FLUXSITE_DIRS['LOG']}/<task_name>_log.txt",
+            "The CABLE standard output for each task is written to",
+            f"{internal.FLUXSITE_DIRS['TASKS']}/<task_name>/out.txt",
+            "The NetCDF output for each task is written to",
             f"{internal.FLUXSITE_DIRS['OUTPUT']}/<task_name>_out.nc"
-        )
+        ])
+
 
     def checkout(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab checkout`."""
@@ -187,7 +192,7 @@ class Benchcab:
 
         mkdir(internal.SRC_DIR, exist_ok=True, verbose=True)
 
-        print("Checking out repositories...")
+        self.logger.debug("Checking out repositories...")
         rev_number_log = ""
         for model in self._get_models(config):
             model.repo.checkout(verbose=verbose)
@@ -202,11 +207,10 @@ class Benchcab:
         cable_aux_repo.checkout(verbose=verbose)
 
         rev_number_log_path = next_path("rev_number-*.log")
-        print(f"Writing revision number info to {rev_number_log_path}")
+        self.loffer.debug(f"Writing revision number info to {rev_number_log_path}")
         with rev_number_log_path.open("w", encoding="utf-8") as file:
             file.write(rev_number_log)
 
-        print("")
 
     def build(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab build`."""
@@ -215,19 +219,19 @@ class Benchcab:
 
         for repo in self._get_models(config):
             if repo.build_script:
-                print(
+                self.logger.debug([
                     "Compiling CABLE using custom build script for "
                     f"realisation {repo.name}..."
-                )
+                ])
                 repo.custom_build(modules=config["modules"], verbose=verbose)
             else:
                 build_mode = "with MPI" if internal.MPI else "serially"
-                print(f"Compiling CABLE {build_mode} for realisation {repo.name}...")
+                self.logger.debug(f"Compiling CABLE {build_mode} for realisation {repo.name}...")
                 repo.pre_build(verbose=verbose)
                 repo.run_build(modules=config["modules"], verbose=verbose)
                 repo.post_build(verbose=verbose)
-            print(f"Successfully compiled CABLE for realisation {repo.name}")
-        print("")
+            self.logger.debug(f"Successfully compiled CABLE for realisation {repo.name}")
+
 
     def fluxsite_setup_work_directory(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab fluxsite-setup-work-dir`."""
@@ -235,13 +239,12 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        print("Setting up run directory tree for fluxsite tests...")
+        self.logger.debug("Setting up run directory tree for fluxsite tests...")
         setup_fluxsite_directory_tree(verbose=verbose)
-        print("Setting up tasks...")
+        self.logger.debug("Setting up tasks...")
         for task in tasks:
             task.setup_task(verbose=verbose)
-        print("Successfully setup fluxsite tasks")
-        print("")
+        self.logger.debug("Successfully setup fluxsite tasks")
 
     def fluxsite_run_tasks(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab fluxsite-run-tasks`."""
@@ -249,7 +252,7 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        print("Running fluxsite tasks...")
+        self.logger.debug("Running fluxsite tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -261,8 +264,7 @@ class Benchcab:
             run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
             run_tasks(tasks, verbose=verbose)
-        print("Successfully ran fluxsite tasks")
-        print("")
+        self.logger.debug("Successfully ran fluxsite tasks")
 
     def fluxsite_bitwise_cmp(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab fluxsite-bitwise-cmp`."""
@@ -277,7 +279,7 @@ class Benchcab:
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         comparisons = get_fluxsite_comparisons(tasks)
 
-        print("Running comparison tasks...")
+        self.logger.debug("Running comparison tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -290,7 +292,7 @@ class Benchcab:
             run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
         else:
             run_comparisons(comparisons, verbose=verbose)
-        print("Successfully ran comparison tasks")
+        self.logger.debug("Successfully ran comparison tasks")
 
     def fluxsite(
         self, config_path: str, no_submit: bool, verbose: bool, skip: list[str]

@@ -21,3 +21,11 @@ def test_load_package_data_fail():
     
     with pytest.raises(FileNotFoundError):
         missing = bu.load_package_data('config-missing.yml')
+
+
+def test_get_logger_singleton():
+    """Test get_logger() returns a singleton object..."""
+    logger1 = bu.get_logger(name='benchcab')
+    logger2 = bu.get_logger(name='benchcab')
+
+    assert logger1 is logger2
