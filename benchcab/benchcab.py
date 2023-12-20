@@ -147,7 +147,7 @@ class Benchcab:
             raise RuntimeError(msg)
 
         job_script_path = Path(internal.QSUB_FNAME)
-        self.logger.debug([
+        self.logger.info([
             "Creating PBS job script to run fluxsite tasks on compute "
             f"nodes: {job_script_path}"
         ])
@@ -174,7 +174,7 @@ class Benchcab:
             self.logger.error(exc.output)
             raise
 
-        self.logger.debug([
+        self.logger.info([
             f"PBS job submitted: {proc.stdout.strip()}",
             "The CABLE log file for each task is written to",
             f"{internal.FLUXSITE_DIRS['LOG']}/<task_name>_log.txt",
@@ -192,7 +192,7 @@ class Benchcab:
 
         mkdir(internal.SRC_DIR, exist_ok=True, verbose=True)
 
-        self.logger.debug("Checking out repositories...")
+        self.logger.info("Checking out repositories...")
         rev_number_log = ""
         for model in self._get_models(config):
             model.repo.checkout(verbose=verbose)
@@ -207,7 +207,7 @@ class Benchcab:
         cable_aux_repo.checkout(verbose=verbose)
 
         rev_number_log_path = next_path("rev_number-*.log")
-        self.loffer.debug(f"Writing revision number info to {rev_number_log_path}")
+        self.logger.info(f"Writing revision number info to {rev_number_log_path}")
         with rev_number_log_path.open("w", encoding="utf-8") as file:
             file.write(rev_number_log)
 
@@ -219,18 +219,18 @@ class Benchcab:
 
         for repo in self._get_models(config):
             if repo.build_script:
-                self.logger.debug([
+                self.logger.info([
                     "Compiling CABLE using custom build script for "
                     f"realisation {repo.name}..."
                 ])
                 repo.custom_build(modules=config["modules"], verbose=verbose)
             else:
                 build_mode = "with MPI" if internal.MPI else "serially"
-                self.logger.debug(f"Compiling CABLE {build_mode} for realisation {repo.name}...")
+                self.logger.info(f"Compiling CABLE {build_mode} for realisation {repo.name}...")
                 repo.pre_build(verbose=verbose)
                 repo.run_build(modules=config["modules"], verbose=verbose)
                 repo.post_build(verbose=verbose)
-            self.logger.debug(f"Successfully compiled CABLE for realisation {repo.name}")
+            self.logger.info(f"Successfully compiled CABLE for realisation {repo.name}")
 
 
     def fluxsite_setup_work_directory(self, config_path: str, verbose: bool):
@@ -239,12 +239,12 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        self.logger.debug("Setting up run directory tree for fluxsite tests...")
+        self.logger.info("Setting up run directory tree for fluxsite tests...")
         setup_fluxsite_directory_tree(verbose=verbose)
-        self.logger.debug("Setting up tasks...")
+        self.logger.info("Setting up tasks...")
         for task in tasks:
             task.setup_task(verbose=verbose)
-        self.logger.debug("Successfully setup fluxsite tasks")
+        self.logger.info("Successfully setup fluxsite tasks")
 
     def fluxsite_run_tasks(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab fluxsite-run-tasks`."""
@@ -252,7 +252,7 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        self.logger.debug("Running fluxsite tasks...")
+        self.logger.info("Running fluxsite tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -264,7 +264,7 @@ class Benchcab:
             run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
             run_tasks(tasks, verbose=verbose)
-        self.logger.debug("Successfully ran fluxsite tasks")
+        self.logger.info("Successfully ran fluxsite tasks")
 
     def fluxsite_bitwise_cmp(self, config_path: str, verbose: bool):
         """Endpoint for `benchcab fluxsite-bitwise-cmp`."""
@@ -279,7 +279,7 @@ class Benchcab:
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         comparisons = get_fluxsite_comparisons(tasks)
 
-        self.logger.debug("Running comparison tasks...")
+        self.logger.info("Running comparison tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -292,7 +292,7 @@ class Benchcab:
             run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
         else:
             run_comparisons(comparisons, verbose=verbose)
-        self.logger.debug("Successfully ran comparison tasks")
+        self.logger.info("Successfully ran comparison tasks")
 
     def fluxsite(
         self, config_path: str, no_submit: bool, verbose: bool, skip: list[str]
