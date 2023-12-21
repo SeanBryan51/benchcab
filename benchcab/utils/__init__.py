@@ -42,7 +42,7 @@ def load_package_data(filename: str) -> dict:
     ext = ext if ext != "yaml" else "yml"
 
     # Extract from the installations data directory.
-    raw = pkgutil.get_data("benchcab", os.path.join("data", filename)).decode("utf-8")
+    raw = pkgutil.get_data("benchcab", os.path.join("data", filename)).decode("utf-8") # noqa: PTH118
 
     # Decode and return.
     return PACKAGE_DATA_DECODERS[ext](raw)

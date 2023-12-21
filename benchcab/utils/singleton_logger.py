@@ -7,6 +7,8 @@ from benchcab.utils.singleton import Singleton
 
 
 class SingletonLogger(logging.Logger, metaclass=Singleton):
+    """A singleton logging interface."""
+
     def __init__(self, name: str = "benchcab", level: str = "debug"):
         """Singleton logging instance.
 
@@ -44,7 +46,7 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         Returns
         -------
         str
-            Original string or fragments joined with \n
+            Original string or fragments joined with newlines.
         """
         if type(msg) in [list, tuple]:
             return "\n".join([str(m) for m in msg])
@@ -58,6 +60,10 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         ----------
         msg : str or list
             Message or message fragments for additional detail.
+        *args :
+            Passed to super().debug()
+        **kwargs :
+            Passed to super().debug()
         """
         msg = self._check_multiline(msg)
         super().debug(msg, *args, **kwargs)
@@ -69,6 +75,10 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         ----------
         msg : str or list
             Message or message fragments for additional detail.
+        *args :
+            Passed to super().debug()
+        **kwargs :
+            Passed to super().debug()
         """
         msg = self._check_multiline(msg)
         super().info(msg, *args, **kwargs)
@@ -80,6 +90,10 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         ----------
         msg : str or list
             Message or message fragments for additional detail.
+        *args :
+            Passed to super().debug()
+        **kwargs :
+            Passed to super().debug()
         """
         msg = self._check_multiline(msg)
         super().warn(msg, *args, **kwargs)
@@ -91,6 +105,10 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         ----------
         msg : str or list
             Message or message fragments for additional detail.
+        *args :
+            Passed to super().debug()
+        **kwargs :
+            Passed to super().debug()
         """
         msg = self._check_multiline(msg)
         super().error(msg, *args, **kwargs)
@@ -102,6 +120,10 @@ class SingletonLogger(logging.Logger, metaclass=Singleton):
         ----------
         msg : str or list
             Message or message fragments for additional detail.
+        *args :
+            Passed to super().debug()
+        **kwargs :
+            Passed to super().debug()
         """
         msg = self._check_multiline(msg)
         super().critical(msg, *args, **kwargs)

@@ -29,7 +29,7 @@ from benchcab.utils.repo import Repo
 
 
 @pytest.fixture()
-def mock_repo():
+def mock_repo(): #noqa: D103
     class MockRepo(Repo):
         def __init__(self) -> None:
             self.branch = "test-branch"

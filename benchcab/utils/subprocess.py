@@ -41,6 +41,26 @@ class SubprocessWrapper(SubprocessWrapperInterface):
         verbose: bool = False,
         env: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:
+        """Constructor.
+
+        Parameters
+        ----------
+        cmd : str
+            Command to run.
+        capture_output : bool, optional
+            Capture the output, by default False
+        output_file : Optional[pathlib.Path], optional
+            Output file, by default None
+        verbose : bool, optional
+            Verbose output, by default False
+        env : Optional[dict], optional
+            Environment vars to pass, by default None
+
+        Returns
+        -------
+        subprocess.CompletedProcess
+            _description_
+        """
         kwargs: Any = {}
         with contextlib.ExitStack() as stack:
             if capture_output:

@@ -32,6 +32,23 @@ class Model:
         build_script: Optional[str] = None,
         model_id: Optional[int] = None,
     ) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        repo : Repo
+            Respository.
+        name : Optional[str], optional
+            Name, by default None
+        patch : Optional[dict], optional
+            Patch, by default None
+        patch_remove : Optional[dict], optional
+            Patch remove, by default None
+        build_script : Optional[str], optional
+            Build script, by default None
+        model_id : Optional[int], optional
+            Model ID, by default None
+        """
         self.repo = repo
         self.name = name if name else repo.get_branch_name()
         self.patch = patch

@@ -18,7 +18,7 @@ def test_load_package_data_pass():
 def test_load_package_data_fail():
     """Test load_package_data() fails as expected."""
     with pytest.raises(FileNotFoundError):
-        missing = bu.load_package_data("config-missing.yml")
+        bu.load_package_data("config-missing.yml")
 
 
 def test_get_logger_singleton():

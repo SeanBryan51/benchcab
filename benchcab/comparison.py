@@ -23,6 +23,15 @@ class ComparisonTask:
         files: tuple[Path, Path],
         task_name: str,
     ) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        files : tuple[Path, Path]
+            Files.
+        task_name : str
+            Name of the task.
+        """
         self.files = files
         self.task_name = task_name
 

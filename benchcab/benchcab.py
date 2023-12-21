@@ -1,6 +1,3 @@
-# Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: Apache-2.0
-
 """Contains the benchcab application class."""
 
 import grp
@@ -42,6 +39,15 @@ class Benchcab:
         benchcab_exe_path: Optional[Path],
         validate_env: bool = True,
     ) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        benchcab_exe_path : Optional[Path]
+            Path to the executable.
+        validate_env : bool, optional
+            Validate the environment, by default True
+        """
         self.benchcab_exe_path = benchcab_exe_path
         self.validate_env = validate_env
 

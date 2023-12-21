@@ -1,4 +1,4 @@
-"""`pytest` tests for config.py"""
+"""`pytest` tests for config.py."""
 import pytest
 
 import benchcab.config as bc
@@ -20,7 +20,7 @@ def test_read_config_fail():
 
     # Test for a path that does not exist.
     with pytest.raises(FileNotFoundError):
-        config = bc.read_config(nonexistent_path)
+        bc.read_config(nonexistent_path)
 
 
 def test_validate_config_valid():
@@ -32,5 +32,5 @@ def test_validate_config_valid():
 def test_validate_config_invalid():
     """Test validate_config() for an invalid config file."""
     invalid_config = bu.load_package_data("test/config-invalid.yml")
-    with pytest.raises(bc.ConfigValidationException):
+    with pytest.raises(bc.ConfigValidationError):
         bc.validate_config(invalid_config)

@@ -10,7 +10,9 @@ from cerberus import Validator
 import benchcab.utils as bu
 
 
-class ConfigValidationException(Exception):
+class ConfigValidationError(Exception):
+    """Config validation error class."""
+
     def __init__(self, validator: Validator):
         """Config validation exception.
 
@@ -45,7 +47,7 @@ def validate_config(config: dict) -> bool:
 
     Raises
     ------
-    ConfigValidationException
+    ConfigValidationError
         Raised when the configuration file fails validation.
     """
     # Load the schema
@@ -62,7 +64,7 @@ def validate_config(config: dict) -> bool:
         return True
 
     # Invalid
-    raise ConfigValidationException(v)
+    raise ConfigValidationError(v)
 
 
 def read_config(config_path: str) -> dict:
@@ -84,7 +86,7 @@ def read_config(config_path: str) -> dict:
         Raised when the configuration file fails validation.
     """
     # Load the configuration file.
-    with open(Path(config_path), "r", encoding="utf-8") as file:
+    with Path.open(Path(config_path), "r", encoding="utf-8") as file:
         config = yaml.safe_load(file)
 
     # Validate and return.

@@ -30,6 +30,20 @@ KeyType = TypeVar('KeyType')
 
 
 def deep_update(mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]) -> Dict[KeyType, Any]:
+    """Perform a deep update of a mapping.
+
+    Parameters
+    ----------
+    mapping : Dict[KeyType, Any]
+        Mapping.
+    *updating_mappings : Dict[KeyType, Any]
+        Mapping updates.
+
+    Returns
+    -------
+    Dict[KeyType, Any]
+        Updated mapping.
+    """
     updated_mapping = mapping.copy()
     for updating_mapping in updating_mappings:
         for k, v in updating_mapping.items():
@@ -102,6 +116,19 @@ class Task:
         sci_conf_id: int,
         sci_config: dict,
     ) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        model : Model
+            Model.
+        met_forcing_file : str
+            Met forcinf file.
+        sci_conf_id : int
+            Science configuration ID.
+        sci_config : dict
+            Science configuration.
+        """
         self.model = model
         self.met_forcing_file = met_forcing_file
         self.sci_conf_id = sci_conf_id
