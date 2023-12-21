@@ -19,7 +19,7 @@ def parse_and_dispatch(parser):
     args = vars(parser.parse_args(sys.argv[1:] if sys.argv[1:] else ["-h"]))
 
     # Intercept the verbosity flag to engage the logger
-    log_level = 'debug' if args.get('verbose', False) == True else 'info'
+    log_level = "debug" if args.get("verbose", False) == True else "info"
 
     # We just need to instantiate this with the desired level
     logger = get_logger(level=log_level)

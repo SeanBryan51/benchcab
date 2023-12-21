@@ -5,8 +5,8 @@
 from pathlib import Path
 
 import yaml
-from benchcab import internal
 from cerberus import Validator
+
 import benchcab.utils as bu
 
 
@@ -19,7 +19,6 @@ class ConfigValidationException(Exception):
         validator: cerberus.Validator
             A validation object that has been used and has the errors attribute.
         """
-
         # Nicely format the errors.
         errors = [f"{k} = {v}" for k, v in validator.errors.items()]
 
@@ -49,7 +48,6 @@ def validate_config(config: dict) -> bool:
     ConfigValidationException
         Raised when the configuration file fails validation.
     """
-
     # Load the schema
     schema = bu.load_package_data("config-schema.yml")
 
@@ -85,7 +83,6 @@ def read_config(config_path: str) -> dict:
     ConfigValidationError
         Raised when the configuration file fails validation.
     """
-
     # Load the configuration file.
     with open(Path(config_path), "r", encoding="utf-8") as file:
         config = yaml.safe_load(file)

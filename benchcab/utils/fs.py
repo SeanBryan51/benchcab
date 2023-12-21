@@ -44,7 +44,6 @@ def next_path(path_pattern: str, path: Path = Path(), sep: str = "-") -> Path:
     file-2.txt
     file-3.txt
     """
-
     loc_pattern = Path(path_pattern)
     new_file_index = 1
     common_filename, _ = loc_pattern.stem.split(sep)
@@ -69,7 +68,6 @@ def mkdir(new_path: Path, verbose=False, **kwargs):
     **kwargs : dict, optional
         Additional options for `pathlib.Path.mkdir()`
     """
-
     if verbose:
         print(f"Creating {new_path} directory")
     new_path.mkdir(**kwargs)

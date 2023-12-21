@@ -2,18 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Top-level utilities."""
-import pkgutil
 import json
-import yaml
 import os
-import sys
+import pkgutil
 from importlib import resources
 from pathlib import Path
-import logging
-from benchcab.utils.singleton import Singleton
-from benchcab.utils.singleton_logger import SingletonLogger
-from typing import Union
 
+import yaml
+
+from benchcab.utils.singleton_logger import SingletonLogger
 
 # List of one-argument decoding functions.
 PACKAGE_DATA_DECODERS = dict(json=json.loads, yml=yaml.safe_load)
@@ -51,7 +48,7 @@ def load_package_data(filename: str) -> dict:
     return PACKAGE_DATA_DECODERS[ext](raw)
 
 
-def get_logger(name='benchcab', level='debug'):
+def get_logger(name="benchcab", level="debug"):
     """Get a singleton logger object.
 
     Parameters

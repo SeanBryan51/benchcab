@@ -8,8 +8,8 @@ from typing import Optional
 import git
 
 from benchcab import internal
-from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 from benchcab.utils import get_logger
+from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 
 
 class Repo(AbstractBaseClass):
@@ -105,7 +105,9 @@ class GitRepo(Repo):
             self.logger.debug(f"Reset to commit {self.commit} (hard reset)")
             repo = git.Repo(self.path)
             repo.head.reset(self.commit, working_tree=True)
-        self.logger.info(f"Successfully checked out {self.branch} - {self.get_revision()}")
+        self.logger.info(
+            f"Successfully checked out {self.branch} - {self.get_revision()}"
+        )
 
     def get_revision(self) -> str:
         """Return the latest revision of the source code.
@@ -186,7 +188,9 @@ class SVNRepo(Repo):
 
         self.subprocess_handler.run_cmd(cmd, verbose=verbose)
 
-        self.logger.info(f"Successfully checked out {self.path.name} - {self.get_revision()}")
+        self.logger.info(
+            f"Successfully checked out {self.path.name} - {self.get_revision()}"
+        )
 
     def get_revision(self) -> str:
         """Return the latest revision of the source code.
