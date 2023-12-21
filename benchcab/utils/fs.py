@@ -36,7 +36,7 @@ def copy2(src: Path, dest: Path, verbose=False):
 
 def next_path(path_pattern: str, path: Path = Path(), sep: str = "-") -> Path:
     """Find the next free path.
-    
+
     Finds the next free path in a sequentially named list of
     files with the following pattern in the `path` directory:
 
