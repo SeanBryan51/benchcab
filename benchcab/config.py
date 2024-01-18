@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """A module containing all *_config() functions."""
+import os
+import sys
 from pathlib import Path
 
 import yaml
@@ -81,6 +83,14 @@ def read_optional_key(config: dict):
     config : dict
         The configuration file with with/without optional keys
     """
+    if "project" not in config:
+        if "PROJECT" not in os.environ:
+            msg = """Couldn't resolve project: check 'project' in config.yaml
+                and/or $PROJECT set in ~/.config/gadi-login.conf
+                """
+            raise ValueError(msg)
+        config["project"] = os.environ["PROJECT"]
+
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name")

@@ -10,7 +10,7 @@ from benchcab.utils.pbs import PBSConfig
 
 _, NODENAME, _, _, _ = os.uname()
 
-CONFIG_REQUIRED_KEYS = ["realisations", "project", "modules", "experiment"]
+CONFIG_REQUIRED_KEYS = ["realisations", "modules", "experiment"]
 
 # Parameters for job script:
 QSUB_FNAME = "benchmark_cable_qsub.sh"

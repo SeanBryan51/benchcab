@@ -1,23 +1,38 @@
 """`pytest` tests for config.py."""
+import os
+import re
 from contextlib import nullcontext as does_not_raise
 from pathlib import Path
 from pprint import pformat
+from unittest import mock
 
 import pytest
 
 import benchcab.config as bc
+import benchcab.internal as bi
 import benchcab.utils as bu
+
+# Temporarily set $PROJECT for testing module
+OPTIONAL_CONFIG_PROJECT = "tt1"
+
+
+@pytest.fixture(autouse=True)
+def _set_project_env_variable(monkeypatch):
+    # Clear existing environment variables first
+    with mock.patch.dict(os.environ, clear=True):
+        monkeypatch.setenv("PROJECT", OPTIONAL_CONFIG_PROJECT)
+        yield
 
 
 @pytest.fixture()
 def config_str(request) -> str:
-    """Provide relative YAML path string from data files."""
+    """Provide relative YAML path string of data files."""
     return f"test/{request.param}"
 
 
 @pytest.fixture()
 def config_path(config_str: str) -> Path:
-    """Provide absolute YAML Path object from data files."""
+    """Provide absolute YAML Path object of data files."""
     return bu.get_installed_root() / "data" / config_str
 
 
@@ -28,10 +43,12 @@ def empty_config() -> dict:
 
 
 @pytest.fixture()
-def no_optional_config() -> dict:
-    """Config with no optional parameters."""
+def default_only_config() -> dict:
+    """Config with no optional parameters.
+
+    Reads from config-basic.yml
+    """
     return {
-        "project": "w97",
         "modules": ["intel-compiler/2021.1.1", "netcdf/4.7.4", "openmpi/4.1.0"],
         "realisations": [
             {"repo": {"svn": {"branch_path": "trunk"}}},
@@ -45,57 +62,65 @@ def no_optional_config() -> dict:
 
 
 @pytest.fixture()
-def all_optional_config() -> dict:
-    """Config with all optional parameters."""
-    return {
-        "project": "w97",
+def all_optional_default_config(default_only_config) -> dict:
+    """Config with all optional parameters set as default.
+
+    Reads from config-basic.yml
+    """
+    config = default_only_config | {
+        "project": OPTIONAL_CONFIG_PROJECT,
         "fluxsite": {
-            "experiment": "forty-two-site-test",
-            "multiprocess": True,
-            "pbs": {"ncpus": 18, "mem": "30GB", "walltime": "6:00:00", "storage": []},
+            "experiment": bi.FLUXSITE_DEFAULT_EXPERIMENT,
+            "multiprocess": bi.FLUXSITE_DEFAULT_MULTIPROCESS,
+            "pbs": bi.FLUXSITE_DEFAULT_PBS,
         },
-        "modules": ["intel-compiler/2021.1.1", "netcdf/4.7.4", "openmpi/4.1.0"],
-        "realisations": [
-            {"name": None, "repo": {"svn": {"branch_path": "trunk"}}},
-            {
-                "name": None,
-                "repo": {
-                    "svn": {"branch_path": "branches/Users/ccc561/v3.0-YP-changes"}
-                },
+        "science_configurations": bi.DEFAULT_SCIENCE_CONFIGURATIONS,
+    }
+    for c_r in config["realisations"]:
+        c_r["name"] = None
+
+    return config
+
+
+@pytest.fixture()
+def all_optional_custom_config(default_only_config) -> dict:
+    """Config with custom optional parameters.
+
+    Reads from config-optional.yml
+    """
+    config = default_only_config | {
+        "project": "optional",
+        "fluxsite": {
+            "experiment": "AU-Tum",
+            "multiprocess": False,
+            "pbs": {
+                "ncpus": 6,
+                "mem": "10GB",
+                "walltime": "10:00:00",
+                "storage": ["scratch/$PROJECT"],
             },
-        ],
+        },
         "science_configurations": [
             {
                 "cable": {
-                    "cable_user": {"FWSOIL_SWITCH": "Haverd2013", "GS_SWITCH": "medlyn"}
+                    "cable_user": {"FWSOIL_SWITCH": "test_fw", "GS_SWITCH": "test_gs"}
                 }
-            },
-            {
-                "cable": {
-                    "cable_user": {
-                        "FWSOIL_SWITCH": "Haverd2013",
-                        "GS_SWITCH": "leuning",
-                    }
-                }
-            },
-            {
-                "cable": {
-                    "cable_user": {"FWSOIL_SWITCH": "standard", "GS_SWITCH": "medlyn"}
-                }
-            },
-            {
-                "cable": {
-                    "cable_user": {"FWSOIL_SWITCH": "standard", "GS_SWITCH": "leuning"}
-                }
-            },
+            }
         ],
     }
+    branch_names = ["svn_trunk", "git_branch"]
+
+    for c_r, b_n in zip(config["realisations"], branch_names):
+        c_r["name"] = b_n
+
+    return config
 
 
 @pytest.mark.parametrize(
     ("config_str", "output_config", "pytest_error"),
     [
-        ("config-valid.yml", "no_optional_config", does_not_raise()),
+        ("config-basic.yml", "default_only_config", does_not_raise()),
+        ("config-optional.yml", "all_optional_custom_config", does_not_raise()),
         ("config-missing.yml", "empty_config", pytest.raises(FileNotFoundError)),
     ],
     indirect=["config_str"],
@@ -110,7 +135,8 @@ def test_read_config_file(config_path, output_config, pytest_error, request):
 @pytest.mark.parametrize(
     ("config_str", "pytest_error"),
     [
-        ("config-valid.yml", does_not_raise()),
+        ("config-basic.yml", does_not_raise()),
+        ("config-optional.yml", does_not_raise()),
         ("config-invalid.yml", pytest.raises(bc.ConfigValidationError)),
     ],
     indirect=["config_str"],
@@ -122,16 +148,42 @@ def test_validate_config(config_str, pytest_error):
         assert bc.validate_config(config)
 
 
-@pytest.mark.parametrize("input_config", ["no_optional_config", "all_optional_config"])
-def test_read_optional_key_add_data(input_config, all_optional_config, request):
+@pytest.mark.parametrize(
+    ("input_config", "output_config"),
+    [
+        ("default_only_config", "all_optional_default_config"),
+        ("all_optional_default_config", "all_optional_default_config"),
+        ("all_optional_custom_config", "all_optional_custom_config"),
+    ],
+)
+def test_read_optional_key_add_data(input_config, output_config, request):
     """Test default key-values are added if not provided by config.yaml, and existing keys stay intact."""
     config = request.getfixturevalue(input_config)
     bc.read_optional_key(config)
-    assert pformat(config) == pformat(all_optional_config)
+    assert pformat(config) == pformat(request.getfixturevalue(output_config))
 
 
-@pytest.mark.parametrize("config_str", ["config-valid.yml"], indirect=["config_str"])
-def test_read_config(config_path, all_optional_config):
+def test_no_project(default_only_config, monkeypatch):
+    """If project key and $PROJECT are not provided, then raise error."""
+    monkeypatch.delenv("PROJECT")
+    error_msg = re.escape(
+        """Couldn't resolve project: check 'project' in config.yaml
+                and/or $PROJECT set in ~/.config/gadi-login.conf
+                """
+    )
+    with pytest.raises(ValueError, match=error_msg):
+        bc.read_optional_key(default_only_config)
+
+
+@pytest.mark.parametrize(
+    ("config_str", "output_config"),
+    [
+        ("config-basic.yml", "all_optional_default_config"),
+        ("config-optional.yml", "all_optional_custom_config"),
+    ],
+    indirect=["config_str"],
+)
+def test_read_config(config_path, output_config, request):
     """Test overall behaviour of read_config."""
-    output_config = bc.read_config(config_path)
-    assert pformat(output_config) == pformat(all_optional_config)
+    config = bc.read_config(config_path)
+    assert pformat(config) == pformat(request.getfixturevalue(output_config))

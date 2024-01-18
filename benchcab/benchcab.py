@@ -133,6 +133,7 @@ class Benchcab:
     ) -> None:
         """Submits the PBS job script step in the fluxsite test workflow."""
         config = self._get_config(config_path)
+
         self._validate_environment(project=config["project"], modules=config["modules"])
         if self.benchcab_exe_path is None:
             msg = "Path to benchcab executable is undefined."
