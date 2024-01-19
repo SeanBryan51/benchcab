@@ -138,18 +138,6 @@ class Model:
             verbose=verbose,
         )
 
-        copy2(
-            path_to_repo / self.src_dir / "offline" / "parallel_cable",
-            tmp_dir,
-            verbose=verbose,
-        )
-
-        copy2(
-            path_to_repo / self.src_dir / "offline" / "serial_cable",
-            tmp_dir,
-            verbose=verbose,
-        )
-
     def run_build(self, modules: list[str], verbose=False):
         """Runs CABLE build scripts."""
         path_to_repo = internal.SRC_DIR / self.name
@@ -165,13 +153,7 @@ class Model:
             env["FC"] = "mpif90" if internal.MPI else "ifort"
 
             self.subprocess_handler.run_cmd(
-                "make -f Makefile", env=env, verbose=verbose
-            )
-            self.subprocess_handler.run_cmd(
-                f"./{'parallel_cable' if internal.MPI else 'serial_cable'} \"{env['FC']}\" "
-                f"\"{env['CFLAGS']}\" \"{env['LDFLAGS']}\" \"{env['LD']}\" \"{env['NCMOD']}\"",
-                env=env,
-                verbose=verbose,
+                "make mpi" if internal.MPI else "make", env=env, verbose=verbose
             )
 
     def post_build(self, verbose=False):

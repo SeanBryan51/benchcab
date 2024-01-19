@@ -5,8 +5,6 @@ the working directory used for testing is cleaned up in the `_run_around_tests`
 pytest autouse fixture.
 """
 
-import contextlib
-import io
 import os
 from pathlib import Path
 
@@ -15,8 +13,6 @@ import pytest
 from benchcab import internal
 from benchcab.model import Model, remove_module_lines
 from benchcab.utils.repo import Repo
-
-from .conftest import DEFAULT_STDOUT
 
 
 @pytest.fixture()
@@ -106,19 +102,6 @@ class TestCheckout:
             in mock_subprocess_handler.commands
         )
 
-    @pytest.mark.parametrize(
-        ("verbosity", "expected"),
-        [
-            (False, f"Successfully checked out trunk at revision {DEFAULT_STDOUT}\n"),
-            (True, f"Successfully checked out trunk at revision {DEFAULT_STDOUT}\n"),
-        ],
-    )
-    def test_standard_output(self, model, verbosity, expected):
-        """Success case: test standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            model.checkout(verbose=verbosity)
-        assert buf.getvalue() == expected
-
 
 # TODO(Sean) remove for issue https://github.com/CABLE-LSM/benchcab/issues/211
 @pytest.mark.skip(
@@ -157,8 +140,6 @@ class TestPreBuild:
         """Setup precondition for `Model.pre_build()`."""
         (internal.SRC_DIR / model.name / "offline").mkdir(parents=True)
         (internal.SRC_DIR / model.name / "offline" / "Makefile").touch()
-        (internal.SRC_DIR / model.name / "offline" / "parallel_cable").touch()
-        (internal.SRC_DIR / model.name / "offline" / "serial_cable").touch()
         (internal.SRC_DIR / model.name / "offline" / "foo.f90").touch()
 
     def test_source_files_and_scripts_are_copied_to_tmp_dir(self, model):
@@ -166,32 +147,7 @@ class TestPreBuild:
         model.pre_build()
         tmp_dir = internal.SRC_DIR / model.name / "offline" / ".tmp"
         assert (tmp_dir / "Makefile").exists()
-        assert (tmp_dir / "parallel_cable").exists()
-        assert (tmp_dir / "serial_cable").exists()
         assert (tmp_dir / "foo.f90").exists()
-
-    @pytest.mark.parametrize(
-        ("verbosity", "expected"),
-        [
-            (
-                False,
-                "",
-            ),
-            (
-                True,
-                "mkdir src/trunk/offline/.tmp\n"
-                "cp -p src/trunk/offline/foo.f90 src/trunk/offline/.tmp\n"
-                "cp -p src/trunk/offline/Makefile src/trunk/offline/.tmp\n"
-                "cp -p src/trunk/offline/parallel_cable src/trunk/offline/.tmp\n"
-                "cp -p src/trunk/offline/serial_cable src/trunk/offline/.tmp\n",
-            ),
-        ],
-    )
-    def test_standard_output(self, model, verbosity, expected):
-        """Success case: test standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            model.pre_build(verbose=verbosity)
-        assert buf.getvalue() == expected
 
 
 class TestRunBuild:
@@ -224,21 +180,14 @@ class TestRunBuild:
         """Setup precondition for `Model.run_build()`."""
         (internal.SRC_DIR / model.name / "offline" / ".tmp").mkdir(parents=True)
 
-        # This is required so that we can use the NETCDF_ROOT environment variable
-        # when running `make`, and `serial_cable` and `parallel_cable` scripts:
+        # This is required so that we can use the NETCDF_ROOT environment
+        # variable when running `make`:
         os.environ["NETCDF_ROOT"] = netcdf_root
 
-    def test_build_command_execution(
-        self, model, mock_subprocess_handler, modules, netcdf_root
-    ):
+    def test_build_command_execution(self, model, mock_subprocess_handler, modules):
         """Success case: test build commands are run."""
         model.run_build(modules)
-        assert mock_subprocess_handler.commands == [
-            "make -f Makefile",
-            './serial_cable "ifort" "-O2 -fp-model precise"'
-            f' "-L{netcdf_root}/lib/Intel -O0" "-lnetcdf -lnetcdff" '
-            f'"{netcdf_root}/include/Intel"',
-        ]
+        assert mock_subprocess_handler.commands == ["make"]
 
     def test_modules_loaded_at_runtime(
         self, model, mock_environment_modules_handler, modules
@@ -260,19 +209,6 @@ class TestRunBuild:
         for kv in env.items():
             assert kv in mock_subprocess_handler.env.items()
 
-    @pytest.mark.parametrize(
-        ("verbosity", "expected"),
-        [
-            (False, ""),
-            (True, "Loading modules: foo bar\nUnloading modules: foo bar\n"),
-        ],
-    )
-    def test_standard_output(self, model, modules, verbosity, expected):
-        """Success case: test standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            model.run_build(modules, verbose=verbosity)
-        assert buf.getvalue() == expected
-
 
 class TestPostBuild:
     """Tests for `Model.post_build()`."""
@@ -292,19 +228,6 @@ class TestPostBuild:
         assert not (tmp_dir / internal.CABLE_EXE).exists()
         offline_dir = internal.SRC_DIR / model.name / "offline"
         assert (offline_dir / internal.CABLE_EXE).exists()
-
-    @pytest.mark.parametrize(
-        ("verbosity", "expected"),
-        [
-            (False, ""),
-            (True, "mv src/trunk/offline/.tmp/cable src/trunk/offline/cable\n"),
-        ],
-    )
-    def test_standard_output(self, model, verbosity, expected):
-        """Success case: test non-verbose standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            model.post_build(verbose=verbosity)
-        assert buf.getvalue() == expected
 
 
 class TestCustomBuild:
@@ -346,31 +269,6 @@ class TestCustomBuild:
         assert (
             "module unload " + " ".join(modules)
         ) in mock_environment_modules_handler.commands
-
-    @pytest.mark.parametrize(
-        ("verbosity", "expected"),
-        [
-            (
-                False,
-                "",
-            ),
-            (
-                True,
-                "Copying src/trunk/my-custom-build.sh to src/trunk/tmp-build.sh\n"
-                "chmod +x src/trunk/tmp-build.sh\n"
-                "Modifying tmp-build.sh: remove lines that call environment "
-                "modules\n"
-                "Loading modules: foo bar\n"
-                "Unloading modules: foo bar\n",
-            ),
-        ],
-    )
-    def test_standard_output(self, model, build_script, modules, verbosity, expected):
-        """Success case: test non-verbose standard output for a custom build script."""
-        model.build_script = str(build_script)
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            model.custom_build(modules, verbose=verbosity)
-        assert buf.getvalue() == expected
 
     def test_file_not_found_exception(self, model, build_script, modules):
         """Failure case: cannot find custom build script."""

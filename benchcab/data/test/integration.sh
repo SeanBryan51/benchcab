@@ -21,6 +21,10 @@ realisations:
   - repo:
       svn:
         branch_path: trunk
+    # TODO(Sean): This is required to compile legacy versions.
+    # We should probably deprecate support for SVN branches
+    # and remove the SVN trunk from our integration tests.
+    build_script: offline/build3.sh
   - repo:
       git:
         branch: main
