@@ -29,19 +29,16 @@ def render_job_script(
         f"module load {module_name}" for module_name in modules
     )
     verbose_flag = "-v" if verbose else ""
-    ncpus = pbs_config.get("ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"])
-    mem = pbs_config.get("mem", internal.FLUXSITE_DEFAULT_PBS["mem"])
-    walltime = pbs_config.get("walltime", internal.FLUXSITE_DEFAULT_PBS["walltime"])
     storage_flags = [
         "gdata/ks32",
         "gdata/hh5",
-        *pbs_config.get("storage", internal.FLUXSITE_DEFAULT_PBS["storage"]),
+        *pbs_config["storage"]
     ]
     return f"""#!/bin/bash
 #PBS -l wd
-#PBS -l ncpus={ncpus}
-#PBS -l mem={mem}
-#PBS -l walltime={walltime}
+#PBS -l ncpus={pbs_config["ncpus"]}
+#PBS -l mem={pbs_config["mem"]}
+#PBS -l walltime={pbs_config["walltime"]}
 #PBS -q normal
 #PBS -P {project}
 #PBS -j oe
