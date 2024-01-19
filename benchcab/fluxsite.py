@@ -175,10 +175,6 @@ class Task:
                         "restart": False,
                     },
                     "fixedCO2": internal.CABLE_FIXED_CO2_CONC,
-                    "casafile": {
-                        "phen": str(internal.PHEN_FILE.absolute()),
-                        "cnpbiome": str(internal.CNPBIOME_FILE.absolute()),
-                    },
                     "spinup": False,
                 }
             },
