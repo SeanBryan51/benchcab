@@ -32,6 +32,7 @@ fluxsite:
   experiment: AU-Tum
   pbs:
     storage:
+      - gdata/rp23
       - scratch/$PROJECT
 EOL
 
