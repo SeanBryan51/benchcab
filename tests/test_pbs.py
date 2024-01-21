@@ -13,6 +13,7 @@ class TestRenderJobScript:
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
             f"""#!/bin/bash
@@ -46,6 +47,7 @@ set -ev
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             verbose=True,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
@@ -80,6 +82,7 @@ set -ev
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             skip_bitwise_cmp=True,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
@@ -145,7 +148,7 @@ set -ev
         )
 
     def test_default_pbs_config(self):
-        """Success case: if the pbs_config is empty, use the default values."""
+        """Success case: if any key(s) of pbs_config is/are empty, use the default values."""
         assert render_job_script(
             project="tm70",
             config_path="/path/to/config.yaml",

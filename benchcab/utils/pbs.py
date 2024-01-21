@@ -3,27 +3,23 @@
 
 """Contains helper functions for manipulating PBS job scripts."""
 
-from typing import Optional
-
 from benchcab import internal
-
 
 def render_job_script(
     project: str,
     config_path: str,
     modules: list,
     benchcab_path: str,
+    pbs_config: dict,
     verbose=False,
     skip_bitwise_cmp=False,
-    pbs_config: Optional[dict] = None,
 ) -> str:
     """Returns the text for a PBS job script that executes all computationally expensive commands.
 
     This includes things such as running CABLE and running bitwise comparison jobs
     between model output files.
     """
-    if pbs_config is None:
-        pbs_config = internal.FLUXSITE_DEFAULT_PBS
+    pbs_config = internal.FLUXSITE_DEFAULT_PBS | pbs_config
 
     module_load_lines = "\n".join(
         f"module load {module_name}" for module_name in modules
