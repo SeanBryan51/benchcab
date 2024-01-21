@@ -107,7 +107,7 @@ class Benchcab:
             for id, sub_config in enumerate(config["realisations"]):
                 repo = create_repo(
                     spec=sub_config.pop("repo"),
-                    path=internal.SRC_DIR / config["name"],
+                    path=internal.SRC_DIR / sub_config["name"],
                 )
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models
@@ -147,10 +147,10 @@ class Benchcab:
                 project=config["project"],
                 config_path=config_path,
                 modules=config["modules"],
+                pbs_config=config["fluxsite"]["pbs"],
                 verbose=verbose,
                 skip_bitwise_cmp="fluxsite-bitwise-cmp" in skip,
                 benchcab_path=str(self.benchcab_exe_path),
-                pbs_config=config["fluxsite"]["pbs"],
             )
             file.write(contents)
 
