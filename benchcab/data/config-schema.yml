@@ -72,7 +72,7 @@ fluxsite:
         "US-Whs"
       ]
       required: false
-    multiprocessing:
+    multiprocess:
       type: "boolean"
       required: false
     pbs:
@@ -87,7 +87,7 @@ fluxsite:
           required: false
         walltime:
           type: "string"
-          regex: "^[0-4][0-9]:[0-5][0-9]:[0-5][0-9]$"
+          regex: "^[0-4]?[0-9]:[0-5]?[0-9]:[0-5]?[0-9]$"
           required: false
         storage:
           type: list
