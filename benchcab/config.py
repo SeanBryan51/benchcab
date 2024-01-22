@@ -66,19 +66,28 @@ def validate_config(config: dict) -> bool:
     # Invalid
     raise ConfigValidationException(v)
 
-def read_optional_data(config: dict):
 
+def read_optional_data(config: dict):
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name", str(internal.SRC_DIR))
 
-    config["science_configurations"] = config.get("science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS)
+    config["science_configurations"] = config.get(
+        "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
+    )
 
     config["fluxsite"] = config.get("fluxsite", {})
-    
-    config["fluxsite"]["multiprocess"] = config["fluxsite"].get("multiprocess", internal.FLUXSITE_DEFAULT_MULTIPROCESS)
-    config["fluxsite"]["experiment"] = config["fluxsite"].get("experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT)
-    config["fluxsite"]["pbs"] = config["fluxsite"].get("pbs", internal.FLUXSITE_DEFAULT_PBS)
+
+    config["fluxsite"]["multiprocess"] = config["fluxsite"].get(
+        "multiprocess", internal.FLUXSITE_DEFAULT_MULTIPROCESS
+    )
+    config["fluxsite"]["experiment"] = config["fluxsite"].get(
+        "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
+    )
+    config["fluxsite"]["pbs"] = config["fluxsite"].get(
+        "pbs", internal.FLUXSITE_DEFAULT_PBS
+    )
+
 
 def read_config(config_path: str) -> dict:
     """Reads the config file and returns a dictionary containing the configurations.

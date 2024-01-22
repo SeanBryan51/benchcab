@@ -5,6 +5,7 @@
 
 from benchcab import internal
 
+
 def render_job_script(
     project: str,
     config_path: str,
@@ -19,20 +20,16 @@ def render_job_script(
     This includes things such as running CABLE and running bitwise comparison jobs
     between model output files.
     """
-
     pbs_missing_keys = internal.FLUXSITE_DEFAULT_PBS.keys() - pbs_config.keys()
     if len(pbs_missing_keys) != 0:
-        raise ValueError(f"Default pbs parameters missing: {sorted(pbs_missing_keys)}")
+        msg = f"Default pbs parameters missing: {sorted(pbs_missing_keys)}"
+        raise ValueError(msg)
 
     module_load_lines = "\n".join(
         f"module load {module_name}" for module_name in modules
     )
     verbose_flag = "-v" if verbose else ""
-    storage_flags = [
-        "gdata/ks32",
-        "gdata/hh5",
-        *pbs_config["storage"]
-    ]
+    storage_flags = ["gdata/ks32", "gdata/hh5", *pbs_config["storage"]]
     return f"""#!/bin/bash
 #PBS -l wd
 #PBS -l ncpus={pbs_config["ncpus"]}

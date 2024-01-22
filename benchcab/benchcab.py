@@ -196,7 +196,6 @@ class Benchcab:
         )
         cable_aux_repo.checkout(verbose=verbose)
 
-
         rev_number_log_path = next_path("rev_number-*.log")
         print(f"Writing revision number info to {rev_number_log_path}")
         with rev_number_log_path.open("w", encoding="utf-8") as file:

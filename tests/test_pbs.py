@@ -6,6 +6,7 @@ from benchcab.utils.pbs import render_job_script
 import pytest
 import re
 
+
 class TestRenderJobScript:
     """Tests for `render_job_script()`."""
 
@@ -151,10 +152,11 @@ set -ev
 
     def test_default_pbs_config(self):
         """Failure case: if any key(s) of pbs_config is/are empty, fail the test."""
-        pbs_missing_keys = ['mem', 'ncpus', 'storage']
+        pbs_missing_keys = ["mem", "ncpus", "storage"]
         with pytest.raises(
             ValueError,
-            match=f"Default pbs parameters missing: " + re.escape(str(pbs_missing_keys))
+            match="Default pbs parameters missing: "
+            + re.escape(str(pbs_missing_keys)),
         ):
             render_job_script(
                 project="tm70",
@@ -162,5 +164,5 @@ set -ev
                 modules=["foo", "bar", "baz"],
                 skip_bitwise_cmp=True,
                 benchcab_path="/absolute/path/to/benchcab",
-                pbs_config={ "walltime" : "48:00:00" },
+                pbs_config={"walltime": "48:00:00"},
             )
