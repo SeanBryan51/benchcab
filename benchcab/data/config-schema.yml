@@ -83,7 +83,7 @@ fluxsite:
           required: false
         mem:
           type: "string"
-          regex: "^[0-9]+(?i)(mb|gb)$"
+          regex: "(?i)^[0-9]+(mb|gb)$"
           required: false
         walltime:
           type: "string"
