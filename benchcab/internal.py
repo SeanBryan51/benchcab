@@ -39,11 +39,11 @@ RUN_DIR = Path("runs")
 # Relative path to core namelist files
 NAMELIST_DIR = Path("namelists")
 
-# Path to grid files
-GRID_DIR = Path("/g/data/rp23/data/no_provenance/gridinfo")
+# Path to CABLE-AUX
+CABLE_AUX_DIR = Path("/g/data/wd9/BenchMarking/CABLE-AUX_v20240122")
 
 # Path CABLE grid info file
-GRID_FILE = GRID_DIR / "crujra_accessN96_gridinfo.nc"
+GRID_FILE = CABLE_AUX_DIR / "offline" / "gridinfo_CSIRO_1x1.nc"
 
 # Fluxsite directory tree
 FLUXSITE_DIRS: dict[str, Path] = {}
