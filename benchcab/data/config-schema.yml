@@ -44,6 +44,7 @@ realisations:
               revision:
                 type: "integer"
       name:
+        nullable: true
         type: "string"
         required: false
       build_script:

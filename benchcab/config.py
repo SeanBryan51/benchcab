@@ -70,7 +70,7 @@ def validate_config(config: dict) -> bool:
 def read_optional_data(config: dict):
     if "realisations" in config:
         for r in config["realisations"]:
-            r["name"] = r.get("name", str(internal.SRC_DIR))
+            r["name"] = r.get("name")
 
     config["science_configurations"] = config.get(
         "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
@@ -84,8 +84,8 @@ def read_optional_data(config: dict):
     config["fluxsite"]["experiment"] = config["fluxsite"].get(
         "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
     )
-    config["fluxsite"]["pbs"] = config["fluxsite"].get(
-        "pbs", internal.FLUXSITE_DEFAULT_PBS
+    config["fluxsite"]["pbs"] = internal.FLUXSITE_DEFAULT_PBS | config["fluxsite"].get(
+        "pbs", {}
     )
 
 

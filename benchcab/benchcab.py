@@ -107,7 +107,8 @@ class Benchcab:
             for id, sub_config in enumerate(config["realisations"]):
                 repo = create_repo(
                     spec=sub_config.pop("repo"),
-                    path=internal.SRC_DIR / sub_config["name"],
+                    path=internal.SRC_DIR
+                    / (Path() if sub_config["name"] is None else sub_config["name"]),
                 )
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models
@@ -245,8 +246,8 @@ class Benchcab:
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         print("Running fluxsite tasks...")
-        if config["multiprocess"]:
-            ncpus = config["pbs"]["ncpus"]
+        if config["fluxsite"]["multiprocess"]:
+            ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
             run_tasks(tasks, verbose=verbose)
@@ -267,7 +268,7 @@ class Benchcab:
         comparisons = get_fluxsite_comparisons(tasks)
 
         print("Running comparison tasks...")
-        if config["multiprocess"]:
+        if config["fluxsite"]["multiprocess"]:
             ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
         else:
