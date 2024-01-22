@@ -3,6 +3,8 @@
 from benchcab import internal
 from benchcab.utils.pbs import render_job_script
 
+import pytest
+import re
 
 class TestRenderJobScript:
     """Tests for `render_job_script()`."""
@@ -148,34 +150,17 @@ set -ev
         )
 
     def test_default_pbs_config(self):
-        """Success case: if any key(s) of pbs_config is/are empty, use the default values."""
-        assert render_job_script(
-            project="tm70",
-            config_path="/path/to/config.yaml",
-            modules=["foo", "bar", "baz"],
-            skip_bitwise_cmp=True,
-            benchcab_path="/absolute/path/to/benchcab",
-            pbs_config={},
-        ) == (
-            f"""#!/bin/bash
-#PBS -l wd
-#PBS -l ncpus={internal.FLUXSITE_DEFAULT_PBS["ncpus"]}
-#PBS -l mem={internal.FLUXSITE_DEFAULT_PBS["mem"]}
-#PBS -l walltime={internal.FLUXSITE_DEFAULT_PBS["walltime"]}
-#PBS -q normal
-#PBS -P tm70
-#PBS -j oe
-#PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
-
-module purge
-module load foo
-module load bar
-module load baz
-
-set -ev
-
-/absolute/path/to/benchcab fluxsite-run-tasks --config=/path/to/config.yaml 
-
-"""
-        )
+        """Failure case: if any key(s) of pbs_config is/are empty, fail the test."""
+        pbs_missing_keys = ['mem', 'ncpus', 'storage']
+        with pytest.raises(
+            ValueError,
+            match=f"Default pbs parameters missing: " + re.escape(str(pbs_missing_keys))
+        ):
+            render_job_script(
+                project="tm70",
+                config_path="/path/to/config.yaml",
+                modules=["foo", "bar", "baz"],
+                skip_bitwise_cmp=True,
+                benchcab_path="/absolute/path/to/benchcab",
+                pbs_config={ "walltime" : "48:00:00" },
+            )

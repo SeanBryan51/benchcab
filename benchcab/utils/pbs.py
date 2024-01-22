@@ -19,7 +19,10 @@ def render_job_script(
     This includes things such as running CABLE and running bitwise comparison jobs
     between model output files.
     """
-    pbs_config = internal.FLUXSITE_DEFAULT_PBS | pbs_config
+
+    pbs_missing_keys = internal.FLUXSITE_DEFAULT_PBS.keys() - pbs_config.keys()
+    if len(pbs_missing_keys) != 0:
+        raise ValueError(f"Default pbs parameters missing: {sorted(pbs_missing_keys)}")
 
     module_load_lines = "\n".join(
         f"module load {module_name}" for module_name in modules
