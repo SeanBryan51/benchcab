@@ -24,7 +24,7 @@ class TestRenderJobScript:
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -58,7 +58,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -92,7 +92,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -130,7 +130,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5+gdata/foo
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9+gdata/foo
 
 module purge
 module load foo
@@ -163,7 +163,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
