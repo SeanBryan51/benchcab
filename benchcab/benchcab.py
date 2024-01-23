@@ -193,14 +193,6 @@ class Benchcab:
             model.repo.checkout(verbose=verbose)
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
 
-        # TODO(Sean) we should archive revision numbers for CABLE-AUX
-        cable_aux_repo = SVNRepo(
-            svn_root=internal.CABLE_SVN_ROOT,
-            branch_path=internal.CABLE_AUX_RELATIVE_SVN_PATH,
-            path=internal.SRC_DIR / "CABLE-AUX",
-        )
-        cable_aux_repo.checkout(verbose=verbose)
-
         rev_number_log_path = next_path("rev_number-*.log")
         print(f"Writing revision number info to {rev_number_log_path}")
         with rev_number_log_path.open("w", encoding="utf-8") as file:

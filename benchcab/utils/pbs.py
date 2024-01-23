@@ -35,6 +35,7 @@ def render_job_script(
     storage_flags = [
         "gdata/ks32",
         "gdata/hh5",
+        "gdata/wd9", # Subgroup of gdata/ks32
         *pbs_config.get("storage", internal.FLUXSITE_DEFAULT_PBS["storage"]),
     ]
     return f"""#!/bin/bash
