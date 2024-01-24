@@ -108,7 +108,7 @@ class Benchcab:
                 repo = create_repo(
                     spec=sub_config.pop("repo"),
                     path=internal.SRC_DIR
-                    / (Path() if sub_config["name"] is None else sub_config["name"]),
+                    / (sub_config["name"] if sub_config["name"] else Path()),
                 )
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models

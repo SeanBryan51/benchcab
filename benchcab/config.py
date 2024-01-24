@@ -3,12 +3,20 @@
 
 """A module containing all *_config() functions."""
 from pathlib import Path
+from typing import TypedDict
 
 import yaml
-from benchcab import internal
 from cerberus import Validator
-import benchcab.utils as bu
 
+import benchcab.utils as bu
+from benchcab import internal
+
+
+class PBSConfig(TypedDict):
+    ncpus: int
+    mem: str
+    walltime: str
+    storage: str
 
 class ConfigValidationException(Exception):
     def __init__(self, validator: Validator):
@@ -19,7 +27,6 @@ class ConfigValidationException(Exception):
         validator: cerberus.Validator
             A validation object that has been used and has the errors attribute.
         """
-
         # Nicely format the errors.
         errors = [f"{k} = {v}" for k, v in validator.errors.items()]
 
@@ -49,7 +56,6 @@ def validate_config(config: dict) -> bool:
     ConfigValidationException
         Raised when the configuration file fails validation.
     """
-
     # Load the schema
     schema = bu.load_package_data("config-schema.yml")
 
@@ -67,7 +73,19 @@ def validate_config(config: dict) -> bool:
     raise ConfigValidationException(v)
 
 
-def read_optional_data(config: dict):
+def read_optional_key(config: dict):
+    """Fills all optional keys in config if not already defined.
+
+    The default values for most optional keys are loaded from `internal.py`
+    Note: We need to ensure that the `name` key for realisations exists for
+    other modules, but it doesn't have a default value.  So we set it to
+    `None` by default.
+
+    Parameters
+    ----------
+    config : dict
+        The configuration file with with/without optional keys
+    """
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name")
@@ -89,6 +107,26 @@ def read_optional_data(config: dict):
     )
 
 
+def read_config_file(config_path: str) -> dict:
+    """Load the config file in a dict.
+
+    Parameters
+    ----------
+    config_path : str
+        Path to the configuration file.
+
+    Returns
+    -------
+    dict
+        Configuration dict
+    """
+    # Load the configuration file.
+    with Path.open(Path(config_path), "r", encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+    
+    return config
+
+
 def read_config(config_path: str) -> dict:
     """Reads the config file and returns a dictionary containing the configurations.
 
@@ -100,20 +138,17 @@ def read_config(config_path: str) -> dict:
     Returns
     -------
     dict
-        Configuration dict.
+        Validated configuration dict, with default optional parameters if not specified in file.
 
     Raises
     ------
     ConfigValidationError
         Raised when the configuration file fails validation.
     """
-
-    # Load the configuration file.
-    with open(Path(config_path), "r", encoding="utf-8") as file:
-        config = yaml.safe_load(file)
-
-    read_optional_data(config)
-
+    # Read configuration file
+    config = read_config_file(config_path)
+    # Populate configuration dict with optional keys
+    read_optional_key(config)
     # Validate and return.
     validate_config(config)
     return config
