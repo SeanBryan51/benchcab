@@ -5,7 +5,8 @@
 
 import os
 from pathlib import Path
-from typing import Any
+
+from benchcab.config import PBSConfig
 
 _, NODENAME, _, _, _ = os.uname()
 
@@ -13,7 +14,7 @@ CONFIG_REQUIRED_KEYS = ["realisations", "project", "modules", "experiment"]
 
 # Parameters for job script:
 QSUB_FNAME = "benchmark_cable_qsub.sh"
-FLUXSITE_DEFAULT_PBS: Any = {
+FLUXSITE_DEFAULT_PBS: PBSConfig = {
     "ncpus": 18,
     "mem": "30GB",
     "walltime": "6:00:00",

@@ -149,20 +149,3 @@ set -ev
 
 """
         )
-
-    def test_default_pbs_config(self):
-        """Failure case: if any key(s) of pbs_config is/are empty, fail the test."""
-        pbs_missing_keys = ["mem", "ncpus", "storage"]
-        with pytest.raises(
-            ValueError,
-            match="Default pbs parameters missing: "
-            + re.escape(str(pbs_missing_keys)),
-        ):
-            render_job_script(
-                project="tm70",
-                config_path="/path/to/config.yaml",
-                modules=["foo", "bar", "baz"],
-                skip_bitwise_cmp=True,
-                benchcab_path="/absolute/path/to/benchcab",
-                pbs_config={"walltime": "48:00:00"},
-            )

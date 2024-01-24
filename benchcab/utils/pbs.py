@@ -4,6 +4,7 @@
 """Contains helper functions for manipulating PBS job scripts."""
 
 from benchcab import internal
+from benchcab.config import PBSConfig
 
 
 def render_job_script(
@@ -11,7 +12,7 @@ def render_job_script(
     config_path: str,
     modules: list,
     benchcab_path: str,
-    pbs_config: dict,
+    pbs_config: PBSConfig,
     verbose=False,
     skip_bitwise_cmp=False,
 ) -> str:
@@ -20,11 +21,6 @@ def render_job_script(
     This includes things such as running CABLE and running bitwise comparison jobs
     between model output files.
     """
-    pbs_missing_keys = internal.FLUXSITE_DEFAULT_PBS.keys() - pbs_config.keys()
-    if len(pbs_missing_keys) != 0:
-        msg = f"Default pbs parameters missing: {sorted(pbs_missing_keys)}"
-        raise ValueError(msg)
-
     module_load_lines = "\n".join(
         f"module load {module_name}" for module_name in modules
     )
