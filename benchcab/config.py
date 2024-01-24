@@ -13,14 +13,18 @@ from benchcab import internal
 
 
 class PBSConfig(TypedDict):
+    """Default parameters for PBS runs via benchcab."""
+
     ncpus: int
     mem: str
     walltime: str
     storage: str
 
-class ConfigValidationException(Exception):
+class ConfigValidationError(Exception):
+    """When config doesn't match with the defined schema."""
+
     def __init__(self, validator: Validator):
-        """Config validation exception.
+        """.
 
         Parameters
         ----------
@@ -70,7 +74,7 @@ def validate_config(config: dict) -> bool:
         return True
 
     # Invalid
-    raise ConfigValidationException(v)
+    raise ConfigValidationError(v)
 
 
 def read_optional_key(config: dict):
@@ -123,7 +127,7 @@ def read_config_file(config_path: str) -> dict:
     # Load the configuration file.
     with Path.open(Path(config_path), "r", encoding="utf-8") as file:
         config = yaml.safe_load(file)
-    
+
     return config
 
 

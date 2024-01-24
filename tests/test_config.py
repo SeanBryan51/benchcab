@@ -81,7 +81,7 @@ def test_validate_config_valid():
 def test_validate_config_invalid():
     """Test validate_config() for an invalid config file."""
     invalid_config = bu.load_package_data("test/config-invalid.yml")
-    with pytest.raises(bc.ConfigValidationException):
+    with pytest.raises(bc.ConfigValidationError):
         bc.validate_config(invalid_config)
 
 
