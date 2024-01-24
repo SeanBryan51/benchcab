@@ -25,7 +25,8 @@ def render_job_script(
         f"module load {module_name}" for module_name in modules
     )
     verbose_flag = "-v" if verbose else ""
-    storage_flags = ["gdata/ks32", "gdata/hh5", *pbs_config["storage"]]
+    # wd9 is subgroup of gdata/ks32
+    storage_flags = ["gdata/ks32", "gdata/hh5", "gdata/wd9", *pbs_config["storage"]]
     return f"""#!/bin/bash
 #PBS -l wd
 #PBS -l ncpus={pbs_config["ncpus"]}

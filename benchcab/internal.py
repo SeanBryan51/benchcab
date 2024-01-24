@@ -40,26 +40,11 @@ RUN_DIR = Path("runs")
 # Relative path to core namelist files
 NAMELIST_DIR = Path("namelists")
 
-# Relative path to CABLE Auxiliary repository
-CABLE_AUX_DIR = SRC_DIR / "CABLE-AUX"
+# Path to CABLE-AUX
+CABLE_AUX_DIR = Path("/g/data/wd9/BenchMarking/CABLE-AUX_v20240122")
 
-# Relative URL path to CABLE Auxiliary repository on SVN
-CABLE_AUX_RELATIVE_SVN_PATH = "branches/Share/CABLE-AUX"
-
-# TODO(Sean): hard coding paths assets in CABLE_AUX is brittle, these should
-# be promoted to config parameters, especially since we no longer throw exceptions
-# when the assets cannot be found.
-
-# Relative path to CABLE grid info file
+# Path CABLE grid info file
 GRID_FILE = CABLE_AUX_DIR / "offline" / "gridinfo_CSIRO_1x1.nc"
-
-# Relative path to modis_phenology_csiro.txt
-PHEN_FILE = CABLE_AUX_DIR / "core" / "biogeochem" / "modis_phenology_csiro.txt"
-
-# Relative path to pftlookup_csiro_v16_17tiles.csv
-CNPBIOME_FILE = (
-    CABLE_AUX_DIR / "core" / "biogeochem" / "pftlookup_csiro_v16_17tiles.csv"
-)
 
 # Fluxsite directory tree
 FLUXSITE_DIRS: dict[str, Path] = {}
