@@ -20,6 +20,7 @@ from benchcab.comparison import ComparisonTask
 from benchcab.model import Model
 from benchcab.utils.fs import chdir, mkdir
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
+from benchcab.utils import get_logger
 
 # fmt: off
 # ======================================================
@@ -133,6 +134,7 @@ class Task:
         self.met_forcing_file = met_forcing_file
         self.sci_conf_id = sci_conf_id
         self.sci_config = sci_config
+        self.logger = get_logger()
 
     def get_task_name(self) -> str:
         """Returns the file name convention used for this task."""
@@ -147,7 +149,7 @@ class Task:
         """Returns the file name convention used for the log file."""
         return f"{self.get_task_name()}_log.txt"
 
-    def setup_task(self, verbose=False):
+    def setup_task(self):
         """Does all file manipulations to run cable in the task directory.
 
         These include:
@@ -159,25 +161,22 @@ class Task:
         5. make appropriate adjustments to namelist files
         6. apply a branch patch if specified
         """
-        if verbose:
-            print(f"Setting up task: {self.get_task_name()}")
+        self.logger.debug(f"Setting up task: {self.get_task_name()}")
 
         mkdir(
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name(),
-            verbose=verbose,
             parents=True,
             exist_ok=True,
         )
 
-        self.clean_task(verbose=verbose)
-        self.fetch_files(verbose=verbose)
+        self.clean_task()
+        self.fetch_files()
 
         nml_path = (
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name() / internal.CABLE_NML
         )
 
-        if verbose:
-            print(f"  Adding base configurations to CABLE namelist file {nml_path}")
+        self.logger.debug(f"  Adding base configurations to CABLE namelist file {nml_path}")
         patch_namelist(
             nml_path,
             {
@@ -211,28 +210,24 @@ class Task:
             },
         )
 
-        if verbose:
-            print(f"  Adding science configurations to CABLE namelist file {nml_path}")
+        self.logger.debug(f"  Adding science configurations to CABLE namelist file {nml_path}")
         patch_namelist(nml_path, self.sci_config)
 
         if self.model.patch:
-            if verbose:
-                print(
+            self.logger.debug(
                     f"  Adding branch specific configurations to CABLE namelist file {nml_path}"
                 )
             patch_namelist(nml_path, self.model.patch)
 
         if self.model.patch_remove:
-            if verbose:
-                print(
+            self.logger.debug(
                     f"  Removing branch specific configurations from CABLE namelist file {nml_path}"
                 )
             patch_remove_namelist(nml_path, self.model.patch_remove)
 
-    def clean_task(self, verbose=False):
+    def clean_task(self):
         """Cleans output files, namelist files, log files and cable executables if they exist."""
-        if verbose:
-            print("  Cleaning task")
+        self.logger.debug("  Cleaning task")
 
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name()
 
@@ -262,7 +257,7 @@ class Task:
 
         return self
 
-    def fetch_files(self, verbose=False):
+    def fetch_files(self):
         """Retrieves all files necessary to run cable in the task directory.
 
         Namely:
@@ -271,8 +266,7 @@ class Task:
         """
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name()
 
-        if verbose:
-            print(
+        self.logger.debug(
                 f"  Copying namelist files from {internal.NAMELIST_DIR} to {task_dir}"
             )
 
@@ -281,25 +275,23 @@ class Task:
         exe_src = self.model.get_exe_path()
         exe_dest = task_dir / internal.CABLE_EXE
 
-        if verbose:
-            print(f"  Copying CABLE executable from {exe_src} to {exe_dest}")
+        self.logger.debug(f"  Copying CABLE executable from {exe_src} to {exe_dest}")
 
         shutil.copy(exe_src, exe_dest)
 
         return self
 
-    def run(self, verbose=False):
+    def run(self):
         """Runs a single fluxsite task."""
         task_name = self.get_task_name()
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / task_name
-        if verbose:
-            print(
+        self.logger.debug([
                 f"Running task {task_name}... CABLE standard output "
                 f"saved in {task_dir / internal.CABLE_STDOUT_FILENAME}"
-            )
+            ])
         try:
-            self.run_cable(verbose=verbose)
-            self.add_provenance_info(verbose=verbose)
+            self.run_cable()
+            self.add_provenance_info()
         except CableError:
             # Note: here we suppress CABLE specific errors so that `benchcab`
             # exits successfully. This then allows us to run bitwise comparisons
@@ -308,7 +300,7 @@ class Task:
             pass
         sys.stdout.flush()
 
-    def run_cable(self, verbose=False):
+    def run_cable(self):
         """Run the CABLE executable for the given task.
 
         Raises `CableError` when CABLE returns a non-zero exit code.
@@ -321,14 +313,13 @@ class Task:
             with chdir(task_dir):
                 self.subprocess_handler.run_cmd(
                     f"./{internal.CABLE_EXE} {internal.CABLE_NML}",
-                    output_file=stdout_path.relative_to(task_dir),
-                    verbose=verbose,
+                    output_file=stdout_path.relative_to(task_dir)
                 )
         except CalledProcessError as exc:
-            print(f"Error: CABLE returned an error for task {task_name}")
+            self.logger.error(f"Error: CABLE returned an error for task {task_name}")
             raise CableError from exc
 
-    def add_provenance_info(self, verbose=False):
+    def add_provenance_info(self):
         """Adds provenance information to global attributes of netcdf output file.
 
         Attributes include branch url, branch revision number and key value pairs in
@@ -338,8 +329,7 @@ class Task:
         nml = f90nml.read(
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name() / internal.CABLE_NML
         )
-        if verbose:
-            print(f"Adding attributes to output file: {nc_output_path}")
+        self.logger.debug(f"Adding attributes to output file: {nc_output_path}")
         with netCDF4.Dataset(nc_output_path, "r+") as nc_output:
             nc_output.setncatts(
                 {
@@ -378,17 +368,17 @@ def get_fluxsite_tasks(
     return tasks
 
 
-def run_tasks(tasks: list[Task], verbose=False):
+def run_tasks(tasks: list[Task]):
     """Runs tasks in `tasks` serially."""
     for task in tasks:
-        task.run(verbose=verbose)
+        task.run()
 
 
 def run_tasks_in_parallel(
-    tasks: list[Task], n_processes=internal.FLUXSITE_DEFAULT_PBS["ncpus"], verbose=False
+    tasks: list[Task], n_processes=internal.FLUXSITE_DEFAULT_PBS["ncpus"]
 ):
     """Runs tasks in `tasks` in parallel across multiple processes."""
-    run_task = operator.methodcaller("run", verbose=verbose)
+    run_task = operator.methodcaller("run")
     with multiprocessing.Pool(n_processes) as pool:
         pool.map(run_task, tasks, chunksize=1)
 

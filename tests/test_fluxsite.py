@@ -33,7 +33,7 @@ def mock_repo():  # noqa: D103
             self.branch = "test-branch"
             self.revision = "1234"
 
-        def checkout(self, verbose=False):
+        def checkout(self):
             pass
 
         def get_branch_name(self) -> str:

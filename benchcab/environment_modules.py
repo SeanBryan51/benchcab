@@ -7,6 +7,7 @@ import contextlib
 import sys
 from abc import ABC as AbstractBaseClass  # noqa: N811
 from abc import abstractmethod
+from benchcab.utils import get_logger
 
 sys.path.append("/opt/Modules/v4.3.0/init")
 try:
@@ -48,16 +49,15 @@ class EnvironmentModulesInterface(AbstractBaseClass):
         """Wrapper around `module unload modulefile...`."""
 
     @contextlib.contextmanager
-    def load(self, modules: list[str], verbose=False):
+    def load(self, modules: list[str]):
         """Context manager for loading and unloading modules."""
-        if verbose:
-            print("Loading modules: " + " ".join(modules))
+        logger = get_logger()
+        logger.debug("Loading modules: " + " ".join(modules))
         self.module_load(*modules)
         try:
             yield
         finally:
-            if verbose:
-                print("Unloading modules: " + " ".join(modules))
+            logger.debug("Unloading modules: " + " ".join(modules))
             self.module_unload(*modules)
 
 

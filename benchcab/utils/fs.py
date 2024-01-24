@@ -7,6 +7,7 @@ import contextlib
 import os
 import shutil
 from pathlib import Path
+from benchcab.utils import get_logger
 
 
 @contextlib.contextmanager
@@ -20,17 +21,15 @@ def chdir(newdir: Path):
         os.chdir(prevdir)
 
 
-def rename(src: Path, dest: Path, verbose=False):
+def rename(src: Path, dest: Path):
     """A wrapper around `pathlib.Path.rename` with optional loggging."""
-    if verbose:
-        print(f"mv {src} {dest}")
+    get_logger().debug(f"mv {src} {dest}")
     src.rename(dest)
 
 
-def copy2(src: Path, dest: Path, verbose=False):
+def copy2(src: Path, dest: Path):
     """A wrapper around `shutil.copy2` with optional logging."""
-    if verbose:
-        print(f"cp -p {src} {dest}")
+    get_logger().debug(f"cp -p {src} {dest}")
     shutil.copy2(src, dest)
 
 
@@ -58,18 +57,15 @@ def next_path(path_pattern: str, path: Path = Path(), sep: str = "-") -> Path:
     return Path(f"{common_filename}{sep}{new_file_index}{loc_pattern.suffix}")
 
 
-def mkdir(new_path: Path, verbose=False, **kwargs):
+def mkdir(new_path: Path, **kwargs):
     """Create the `new_path` directory.
 
     Parameters
     ----------
     new_path : Path
         Path to the directory to be created.
-    verbose : bool, default False
-        Additional level of logging if True
     **kwargs : dict, optional
         Additional options for `pathlib.Path.mkdir()`
     """
-    if verbose:
-        print(f"Creating {new_path} directory")
+    get_logger().debug(f"Creating {new_path} directory")
     new_path.mkdir(**kwargs)

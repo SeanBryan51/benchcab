@@ -15,6 +15,7 @@ from benchcab.environment_modules import EnvironmentModules, EnvironmentModulesI
 from benchcab.utils.fs import chdir, copy2, rename
 from benchcab.utils.repo import GitRepo, Repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
+from benchcab.utils import get_logger
 
 
 class Model:
@@ -56,6 +57,7 @@ class Model:
         self.build_script = build_script
         self._model_id = model_id
         self.src_dir = Path()
+        self.logger = get_logger()
         # TODO(Sean) we should not have to know whether `repo` is a `GitRepo` or
         # `SVNRepo`, we should only be working with the `Repo` interface.
         # See issue https://github.com/CABLE-LSM/benchcab/issues/210
@@ -80,7 +82,7 @@ class Model:
             internal.SRC_DIR / self.name / self.src_dir / "offline" / internal.CABLE_EXE
         )
 
-    def custom_build(self, modules: list[str], verbose=False):
+    def custom_build(self, modules: list[str]):
         """Build CABLE using a custom build script."""
         build_script_path = internal.SRC_DIR / self.name / self.build_script
 
@@ -94,56 +96,50 @@ class Model:
 
         tmp_script_path = build_script_path.parent / "tmp-build.sh"
 
-        if verbose:
-            print(f"Copying {build_script_path} to {tmp_script_path}")
+        self.logger.debug(f"Copying {build_script_path} to {tmp_script_path}")
         shutil.copy(build_script_path, tmp_script_path)
 
-        if verbose:
-            print(f"chmod +x {tmp_script_path}")
+        self.logger.debug(f"chmod +x {tmp_script_path}")
         tmp_script_path.chmod(tmp_script_path.stat().st_mode | stat.S_IEXEC)
 
-        if verbose:
-            print(
+        self.logger.debug([
                 f"Modifying {tmp_script_path.name}: remove lines that call "
                 "environment modules"
-            )
+            ])
         remove_module_lines(tmp_script_path)
 
         with chdir(build_script_path.parent), self.modules_handler.load(
-            modules, verbose=verbose
+            modules
         ):
             self.subprocess_handler.run_cmd(
-                f"./{tmp_script_path.name}",
-                verbose=verbose,
+                f"./{tmp_script_path.name}"
             )
 
-    def pre_build(self, verbose=False):
+    def pre_build(self):
         """Runs CABLE pre-build steps."""
         path_to_repo = internal.SRC_DIR / self.name
         tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
         if not tmp_dir.exists():
-            if verbose:
-                print(f"mkdir {tmp_dir}")
+            self.logger.debug(f"mkdir {tmp_dir}")
             tmp_dir.mkdir()
 
         for pattern in internal.OFFLINE_SOURCE_FILES:
             for path in (path_to_repo / self.src_dir).glob(pattern):
                 if not path.is_file():
                     continue
-                copy2(path, tmp_dir, verbose=verbose)
+                copy2(path, tmp_dir)
 
         copy2(
             path_to_repo / self.src_dir / "offline" / "Makefile",
-            tmp_dir,
-            verbose=verbose,
+            tmp_dir
         )
 
-    def run_build(self, modules: list[str], verbose=False):
+    def run_build(self, modules: list[str]):
         """Runs CABLE build scripts."""
         path_to_repo = internal.SRC_DIR / self.name
         tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
 
-        with chdir(tmp_dir), self.modules_handler.load(modules, verbose=verbose):
+        with chdir(tmp_dir), self.modules_handler.load(modules):
             env = os.environ.copy()
             env["NCDIR"] = f"{env['NETCDF_ROOT']}/lib/Intel"
             env["NCMOD"] = f"{env['NETCDF_ROOT']}/include/Intel"
@@ -153,18 +149,17 @@ class Model:
             env["FC"] = "mpif90" if internal.MPI else "ifort"
 
             self.subprocess_handler.run_cmd(
-                "make mpi" if internal.MPI else "make", env=env, verbose=verbose
+                "make mpi" if internal.MPI else "make", env=env
             )
 
-    def post_build(self, verbose=False):
+    def post_build(self):
         """Runs CABLE post-build steps."""
         path_to_repo = internal.SRC_DIR / self.name
         tmp_dir = path_to_repo / self.src_dir / "offline" / ".tmp"
 
         rename(
             tmp_dir / internal.CABLE_EXE,
-            path_to_repo / self.src_dir / "offline" / internal.CABLE_EXE,
-            verbose=verbose,
+            path_to_repo / self.src_dir / "offline" / internal.CABLE_EXE
         )
 
 

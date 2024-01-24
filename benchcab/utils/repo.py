@@ -20,14 +20,8 @@ class Repo(AbstractBaseClass):
     """
 
     @abstractmethod
-    def checkout(self, verbose=False):
-        """Checkout the source code.
-
-        Parameters
-        ----------
-        verbose: bool, optional
-            Enable or disable verbose output. By default `verbose` is `False`.
-        """
+    def checkout(self):
+        """Checkout the source code."""
 
     @abstractmethod
     def get_revision(self) -> str:
@@ -86,20 +80,13 @@ class GitRepo(Repo):
         self.commit = commit
         self.logger = get_logger()
 
-    def checkout(self, verbose=False):
-        """Checkout the source code.
-
-        Parameters
-        ----------
-        verbose: bool, optional
-            Enable or disable verbose output.
-        """
+    def checkout(self):
+        """Checkout the source code."""
         # TODO(Sean) the gitpython package provides an interface for displaying
         # remote progress. See
         # https://gitpython.readthedocs.io/en/stable/reference.html#git.remote.RemoteProgress
         self.subprocess_handler.run_cmd(
-            f"git clone --branch {self.branch} -- {self.url} {self.path}",
-            verbose=verbose,
+            f"git clone --branch {self.branch} -- {self.url} {self.path}"
         )
         if self.commit:
             self.logger.debug(f"Reset to commit {self.commit} (hard reset)")
@@ -170,15 +157,10 @@ class SVNRepo(Repo):
         self.branch_path = branch_path
         self.revision = revision
         self.path = path / Path(branch_path).name if path.is_dir() else path
+        self.logger = get_logger()
 
-    def checkout(self, verbose=False):
-        """Checkout the source code.
-
-        Parameters
-        ----------
-        verbose: bool, optional
-            Enable or disable verbose output. By default `verbose` is `False`.
-        """
+    def checkout(self):
+        """Checkout the source code."""
         cmd = "svn checkout"
 
         if self.revision:
@@ -186,7 +168,7 @@ class SVNRepo(Repo):
 
         cmd += f" {internal.CABLE_SVN_ROOT}/{self.branch_path} {self.path}"
 
-        self.subprocess_handler.run_cmd(cmd, verbose=verbose)
+        self.subprocess_handler.run_cmd(cmd)
 
         self.logger.info(
             f"Successfully checked out {self.path.name} - {self.get_revision()}"

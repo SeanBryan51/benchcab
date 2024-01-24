@@ -1,3 +1,6 @@
+# Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: Apache-2.0
+
 """Contains the benchcab application class."""
 
 import grp
@@ -142,12 +145,12 @@ class Benchcab:
         )
         return self.tasks
 
-    def validate_config(self, config_path: str, verbose: bool):
+    def validate_config(self, config_path: str):
         """Endpoint for `benchcab validate_config`."""
         _ = self._get_config(config_path)
 
     def fluxsite_submit_job(
-        self, config_path: str, verbose: bool, skip: list[str]
+        self, config_path: str, skip: list[str]
     ) -> None:
         """Submits the PBS job script step in the fluxsite test workflow."""
         config = self._get_config(config_path)
@@ -168,7 +171,6 @@ class Benchcab:
                 project=config["project"],
                 config_path=config_path,
                 modules=config["modules"],
-                verbose=verbose,
                 skip_bitwise_cmp="fluxsite-bitwise-cmp" in skip,
                 benchcab_path=str(self.benchcab_exe_path),
                 pbs_config=config.get("fluxsite", {}).get("pbs"),
@@ -179,7 +181,6 @@ class Benchcab:
             proc = self.subprocess_handler.run_cmd(
                 f"qsub {job_script_path}",
                 capture_output=True,
-                verbose=verbose,
             )
         except CalledProcessError as exc:
             self.logger.error("when submitting job to NCI queue, details to follow")
@@ -198,17 +199,17 @@ class Benchcab:
             ]
         )
 
-    def checkout(self, config_path: str, verbose: bool):
+    def checkout(self, config_path: str):
         """Endpoint for `benchcab checkout`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
 
-        mkdir(internal.SRC_DIR, exist_ok=True, verbose=True)
+        mkdir(internal.SRC_DIR, exist_ok=True)
 
         self.logger.info("Checking out repositories...")
         rev_number_log = ""
         for model in self._get_models(config):
-            model.repo.checkout(verbose=verbose)
+            model.repo.checkout()
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
 
         # TODO(Sean) we should archive revision numbers for CABLE-AUX
@@ -217,14 +218,14 @@ class Benchcab:
             branch_path=internal.CABLE_AUX_RELATIVE_SVN_PATH,
             path=internal.SRC_DIR / "CABLE-AUX",
         )
-        cable_aux_repo.checkout(verbose=verbose)
+        cable_aux_repo.checkout()
 
         rev_number_log_path = next_path("rev_number-*.log")
         self.logger.info(f"Writing revision number info to {rev_number_log_path}")
         with rev_number_log_path.open("w", encoding="utf-8") as file:
             file.write(rev_number_log)
 
-    def build(self, config_path: str, verbose: bool):
+    def build(self, config_path: str):
         """Endpoint for `benchcab build`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
@@ -233,35 +234,35 @@ class Benchcab:
             if repo.build_script:
                 self.logger.info(
                     [
-                        "Compiling CABLE using custom build script for "
+                        "Compiling CABLE using custom build script for ",
                         f"realisation {repo.name}..."
                     ]
                 )
-                repo.custom_build(modules=config["modules"], verbose=verbose)
+                repo.custom_build(modules=config["modules"])
             else:
                 build_mode = "with MPI" if internal.MPI else "serially"
                 self.logger.info(
                     f"Compiling CABLE {build_mode} for realisation {repo.name}..."
                 )
-                repo.pre_build(verbose=verbose)
-                repo.run_build(modules=config["modules"], verbose=verbose)
-                repo.post_build(verbose=verbose)
+                repo.pre_build()
+                repo.run_build(modules=config["modules"])
+                repo.post_build()
             self.logger.info(f"Successfully compiled CABLE for realisation {repo.name}")
 
-    def fluxsite_setup_work_directory(self, config_path: str, verbose: bool):
+    def fluxsite_setup_work_directory(self, config_path: str):
         """Endpoint for `benchcab fluxsite-setup-work-dir`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         self.logger.info("Setting up run directory tree for fluxsite tests...")
-        setup_fluxsite_directory_tree(verbose=verbose)
+        setup_fluxsite_directory_tree()
         self.logger.info("Setting up tasks...")
         for task in tasks:
-            task.setup_task(verbose=verbose)
+            task.setup_task()
         self.logger.info("Successfully setup fluxsite tasks")
 
-    def fluxsite_run_tasks(self, config_path: str, verbose: bool):
+    def fluxsite_run_tasks(self, config_path: str):
         """Endpoint for `benchcab fluxsite-run-tasks`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
@@ -276,12 +277,12 @@ class Benchcab:
             ncpus = config.get("pbs", {}).get(
                 "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
             )
-            run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
+            run_tasks_in_parallel(tasks, n_processes=ncpus)
         else:
-            run_tasks(tasks, verbose=verbose)
+            run_tasks(tasks)
         self.logger.info("Successfully ran fluxsite tasks")
 
-    def fluxsite_bitwise_cmp(self, config_path: str, verbose: bool):
+    def fluxsite_bitwise_cmp(self, config_path: str):
         """Endpoint for `benchcab fluxsite-bitwise-cmp`."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
@@ -304,29 +305,29 @@ class Benchcab:
                 ncpus = config["fluxsite"]["pbs"]["ncpus"]
             except KeyError:
                 ncpus = internal.FLUXSITE_DEFAULT_PBS["ncpus"]
-            run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
+            run_comparisons_in_parallel(comparisons, n_processes=ncpus)
         else:
-            run_comparisons(comparisons, verbose=verbose)
+            run_comparisons(comparisons)
         self.logger.info("Successfully ran comparison tasks")
 
     def fluxsite(
-        self, config_path: str, no_submit: bool, verbose: bool, skip: list[str]
+        self, config_path: str, no_submit: bool, skip: list[str]
     ):
         """Endpoint for `benchcab fluxsite`."""
-        self.checkout(config_path, verbose)
-        self.build(config_path, verbose)
-        self.fluxsite_setup_work_directory(config_path, verbose)
+        self.checkout(config_path)
+        self.build(config_path)
+        self.fluxsite_setup_work_directory(config_path)
         if no_submit:
-            self.fluxsite_run_tasks(config_path, verbose)
+            self.fluxsite_run_tasks(config_path)
             if "fluxsite-bitwise-cmp" not in skip:
-                self.fluxsite_bitwise_cmp(config_path, verbose)
+                self.fluxsite_bitwise_cmp(config_path)
         else:
-            self.fluxsite_submit_job(config_path, verbose, skip)
+            self.fluxsite_submit_job(config_path, skip)
 
-    def spatial(self, config_path: str, verbose: bool):
+    def spatial(self, config_path: str):
         """Endpoint for `benchcab spatial`."""
 
-    def run(self, config_path: str, no_submit: bool, verbose: bool, skip: list[str]):
+    def run(self, config_path: str, no_submit: bool, skip: list[str]):
         """Endpoint for `benchcab run`."""
-        self.fluxsite(config_path, no_submit, verbose, skip)
-        self.spatial(config_path, verbose)
+        self.fluxsite(config_path, no_submit, skip)
+        self.spatial(config_path)

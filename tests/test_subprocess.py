@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 
 from benchcab.utils.subprocess import SubprocessWrapper
+from benchcab.utils import get_logger
+import logging
 
 
 class TestRunCmd:
@@ -19,6 +21,7 @@ class TestRunCmd:
 
     def test_stdout_is_suppressed_in_non_verbose_mode(self, subprocess_handler, capfd):
         """Success case: test stdout is suppressed in non-verbose mode."""
+        get_logger().setLevel(logging.INFO) # Set logging to info, disabling verbose output
         subprocess_handler.run_cmd("echo foo")
         captured = capfd.readouterr()
         assert not captured.out
@@ -26,6 +29,7 @@ class TestRunCmd:
 
     def test_stderr_is_suppressed_in_non_verbose_mode(self, subprocess_handler, capfd):
         """Success case: test stderr is suppressed in non-verbose mode."""
+        get_logger().setLevel(logging.INFO) # Set logging to info, disabling verbose output
         subprocess_handler.run_cmd("echo foo 1>&2")
         captured = capfd.readouterr()
         assert not captured.out
@@ -35,7 +39,8 @@ class TestRunCmd:
         self, subprocess_handler, capfd
     ):
         """Success case: test command and stdout is printed in verbose mode."""
-        subprocess_handler.run_cmd("echo foo", verbose=True)
+        get_logger().setLevel(logging.DEBUG) # Set logging to debug, enabling verbose output
+        subprocess_handler.run_cmd("echo foo")
         captured = capfd.readouterr()
         assert captured.out == "echo foo\nfoo\n"
         assert not captured.err
@@ -44,7 +49,8 @@ class TestRunCmd:
         self, subprocess_handler, capfd
     ):
         """Success case: test command and stderr is redirected to stdout in verbose mode."""
-        subprocess_handler.run_cmd("echo foo 1>&2", verbose=True)
+        get_logger().setLevel(logging.DEBUG) # Set logging to debug, enabling verbose output
+        subprocess_handler.run_cmd("echo foo 1>&2")
         captured = capfd.readouterr()
         assert captured.out == "echo foo 1>&2\nfoo\n"
         assert not captured.err
@@ -53,6 +59,7 @@ class TestRunCmd:
         self, subprocess_handler, capfd
     ):
         """Success case: test output is captured with capture_output enabled."""
+        get_logger().setLevel(logging.INFO) # Set logging to info, disabling verbose output
         proc = subprocess_handler.run_cmd("echo foo", capture_output=True)
         captured = capfd.readouterr()
         assert not captured.out
@@ -73,7 +80,8 @@ class TestRunCmd:
         self, subprocess_handler, capfd
     ):
         """Success case: test command is printed and stdout is captured in verbose mode."""
-        proc = subprocess_handler.run_cmd("echo foo", capture_output=True, verbose=True)
+        get_logger().setLevel(logging.DEBUG) # Set logging to debug, enabling verbose output
+        proc = subprocess_handler.run_cmd("echo foo", capture_output=True)
         captured = capfd.readouterr()
         assert captured.out == "echo foo\n"
         assert not captured.err
@@ -82,6 +90,7 @@ class TestRunCmd:
 
     def test_stdout_is_redirected_to_file(self, subprocess_handler, capfd):
         """Success case: test stdout is redirected to file."""
+        get_logger().setLevel(logging.INFO) # Set logging to info, disabling verbose output
         file_path = Path("out.txt")
         subprocess_handler.run_cmd("echo foo", output_file=file_path)
         with file_path.open("r", encoding="utf-8") as file:
@@ -94,8 +103,9 @@ class TestRunCmd:
         self, subprocess_handler, capfd
     ):
         """Success case: test command is printed and stdout is redirected to file in verbose mode."""
+        get_logger().setLevel(logging.DEBUG) # Set logging to debug, enabling verbose output
         file_path = Path("out.txt")
-        subprocess_handler.run_cmd("echo foo", output_file=file_path, verbose=True)
+        subprocess_handler.run_cmd("echo foo", output_file=file_path)
         with file_path.open("r", encoding="utf-8") as file:
             assert file.read() == "foo\n"
         captured = capfd.readouterr()

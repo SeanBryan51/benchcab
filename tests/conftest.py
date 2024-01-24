@@ -111,7 +111,6 @@ def mock_subprocess_handler():
             cmd: str,
             capture_output: bool = False,
             output_file: Optional[Path] = None,
-            verbose: bool = False,
             env: Optional[dict] = None,
         ) -> CompletedProcess:
             self.commands.append(cmd)

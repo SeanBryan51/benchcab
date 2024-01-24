@@ -11,6 +11,7 @@ from subprocess import CalledProcessError
 
 from benchcab import internal
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
+from benchcab.utils import get_logger
 
 
 class ComparisonTask:
@@ -34,45 +35,45 @@ class ComparisonTask:
         """
         self.files = files
         self.task_name = task_name
+        self.logger = get_logger()
 
-    def run(self, verbose=False) -> None:
+    def run(self) -> None:
         """Executes `nccmp -df` on the NetCDF files pointed to by `self.files`."""
         file_a, file_b = self.files
-        if verbose:
-            print(f"Comparing files {file_a.name} and {file_b.name} bitwise...")
+        self.logger.debug(f"Comparing files {file_a.name} and {file_b.name} bitwise...")
 
         try:
             self.subprocess_handler.run_cmd(
                 f"nccmp -df {file_a} {file_b}",
                 capture_output=True,
-                verbose=verbose,
             )
-            print(f"Success: files {file_a.name} {file_b.name} are identical")
+            self.logger.info(f"Success: files {file_a.name} {file_b.name} are identical")
         except CalledProcessError as exc:
             output_file = (
                 internal.FLUXSITE_DIRS["BITWISE_CMP"] / f"{self.task_name}.txt"
             )
             with output_file.open("w", encoding="utf-8") as file:
                 file.write(exc.stdout)
-            print(
-                f"Failure: files {file_a.name} {file_b.name} differ. "
+            
+            self.logger.error([
+                f"Failure: files {file_a.name} {file_b.name} differ. ",
                 f"Results of diff have been written to {output_file}"
-            )
+            ])
+
         sys.stdout.flush()
 
 
-def run_comparisons(comparison_tasks: list[ComparisonTask], verbose=False) -> None:
+def run_comparisons(comparison_tasks: list[ComparisonTask]) -> None:
     """Runs bitwise comparison tasks serially."""
     for task in comparison_tasks:
-        task.run(verbose=verbose)
+        task.run()
 
 
 def run_comparisons_in_parallel(
     comparison_tasks: list[ComparisonTask],
     n_processes=internal.FLUXSITE_DEFAULT_PBS["ncpus"],
-    verbose=False,
 ) -> None:
     """Runs bitwise comparison tasks in parallel across multiple processes."""
-    run_task = operator.methodcaller("run", verbose=verbose)
+    run_task = operator.methodcaller("run")
     with multiprocessing.Pool(n_processes) as pool:
         pool.map(run_task, comparison_tasks, chunksize=1)
