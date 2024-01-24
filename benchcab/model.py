@@ -12,10 +12,10 @@ from typing import Optional
 
 from benchcab import internal
 from benchcab.environment_modules import EnvironmentModules, EnvironmentModulesInterface
+from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, copy2, rename
 from benchcab.utils.repo import GitRepo, Repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-from benchcab.utils import get_logger
 
 
 class Model:
@@ -102,18 +102,16 @@ class Model:
         self.logger.debug(f"chmod +x {tmp_script_path}")
         tmp_script_path.chmod(tmp_script_path.stat().st_mode | stat.S_IEXEC)
 
-        self.logger.debug([
+        self.logger.debug(
+            [
                 f"Modifying {tmp_script_path.name}: remove lines that call "
                 "environment modules"
-            ])
+            ]
+        )
         remove_module_lines(tmp_script_path)
 
-        with chdir(build_script_path.parent), self.modules_handler.load(
-            modules
-        ):
-            self.subprocess_handler.run_cmd(
-                f"./{tmp_script_path.name}"
-            )
+        with chdir(build_script_path.parent), self.modules_handler.load(modules):
+            self.subprocess_handler.run_cmd(f"./{tmp_script_path.name}")
 
     def pre_build(self):
         """Runs CABLE pre-build steps."""
@@ -129,10 +127,7 @@ class Model:
                     continue
                 copy2(path, tmp_dir)
 
-        copy2(
-            path_to_repo / self.src_dir / "offline" / "Makefile",
-            tmp_dir
-        )
+        copy2(path_to_repo / self.src_dir / "offline" / "Makefile", tmp_dir)
 
     def run_build(self, modules: list[str]):
         """Runs CABLE build scripts."""
@@ -159,7 +154,7 @@ class Model:
 
         rename(
             tmp_dir / internal.CABLE_EXE,
-            path_to_repo / self.src_dir / "offline" / internal.CABLE_EXE
+            path_to_repo / self.src_dir / "offline" / internal.CABLE_EXE,
         )
 
 

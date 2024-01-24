@@ -18,9 +18,9 @@ import netCDF4
 from benchcab import __version__, internal
 from benchcab.comparison import ComparisonTask
 from benchcab.model import Model
+from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, mkdir
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-from benchcab.utils import get_logger
 
 # fmt: off
 # ======================================================
@@ -176,7 +176,9 @@ class Task:
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name() / internal.CABLE_NML
         )
 
-        self.logger.debug(f"  Adding base configurations to CABLE namelist file {nml_path}")
+        self.logger.debug(
+            f"  Adding base configurations to CABLE namelist file {nml_path}"
+        )
         patch_namelist(
             nml_path,
             {
@@ -210,19 +212,21 @@ class Task:
             },
         )
 
-        self.logger.debug(f"  Adding science configurations to CABLE namelist file {nml_path}")
+        self.logger.debug(
+            f"  Adding science configurations to CABLE namelist file {nml_path}"
+        )
         patch_namelist(nml_path, self.sci_config)
 
         if self.model.patch:
             self.logger.debug(
-                    f"  Adding branch specific configurations to CABLE namelist file {nml_path}"
-                )
+                f"  Adding branch specific configurations to CABLE namelist file {nml_path}"
+            )
             patch_namelist(nml_path, self.model.patch)
 
         if self.model.patch_remove:
             self.logger.debug(
-                    f"  Removing branch specific configurations from CABLE namelist file {nml_path}"
-                )
+                f"  Removing branch specific configurations from CABLE namelist file {nml_path}"
+            )
             patch_remove_namelist(nml_path, self.model.patch_remove)
 
     def clean_task(self):
@@ -267,8 +271,8 @@ class Task:
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name()
 
         self.logger.debug(
-                f"  Copying namelist files from {internal.NAMELIST_DIR} to {task_dir}"
-            )
+            f"  Copying namelist files from {internal.NAMELIST_DIR} to {task_dir}"
+        )
 
         shutil.copytree(internal.NAMELIST_DIR, task_dir, dirs_exist_ok=True)
 
@@ -285,10 +289,12 @@ class Task:
         """Runs a single fluxsite task."""
         task_name = self.get_task_name()
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / task_name
-        self.logger.debug([
+        self.logger.debug(
+            [
                 f"Running task {task_name}... CABLE standard output "
                 f"saved in {task_dir / internal.CABLE_STDOUT_FILENAME}"
-            ])
+            ]
+        )
         try:
             self.run_cable()
             self.add_provenance_info()
@@ -313,7 +319,7 @@ class Task:
             with chdir(task_dir):
                 self.subprocess_handler.run_cmd(
                     f"./{internal.CABLE_EXE} {internal.CABLE_NML}",
-                    output_file=stdout_path.relative_to(task_dir)
+                    output_file=stdout_path.relative_to(task_dir),
                 )
         except CalledProcessError as exc:
             self.logger.error(f"Error: CABLE returned an error for task {task_name}")

@@ -10,8 +10,8 @@ from pathlib import Path
 from subprocess import CalledProcessError
 
 from benchcab import internal
-from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 from benchcab.utils import get_logger
+from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 
 
 class ComparisonTask:
@@ -47,18 +47,22 @@ class ComparisonTask:
                 f"nccmp -df {file_a} {file_b}",
                 capture_output=True,
             )
-            self.logger.info(f"Success: files {file_a.name} {file_b.name} are identical")
+            self.logger.info(
+                f"Success: files {file_a.name} {file_b.name} are identical"
+            )
         except CalledProcessError as exc:
             output_file = (
                 internal.FLUXSITE_DIRS["BITWISE_CMP"] / f"{self.task_name}.txt"
             )
             with output_file.open("w", encoding="utf-8") as file:
                 file.write(exc.stdout)
-            
-            self.logger.error([
-                f"Failure: files {file_a.name} {file_b.name} differ. ",
-                f"Results of diff have been written to {output_file}"
-            ])
+
+            self.logger.error(
+                [
+                    f"Failure: files {file_a.name} {file_b.name} differ. ",
+                    f"Results of diff have been written to {output_file}",
+                ]
+            )
 
         sys.stdout.flush()
 

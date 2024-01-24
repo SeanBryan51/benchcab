@@ -7,6 +7,7 @@ import contextlib
 import sys
 from abc import ABC as AbstractBaseClass  # noqa: N811
 from abc import abstractmethod
+
 from benchcab.utils import get_logger
 
 sys.path.append("/opt/Modules/v4.3.0/init")

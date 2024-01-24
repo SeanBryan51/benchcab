@@ -149,9 +149,7 @@ class Benchcab:
         """Endpoint for `benchcab validate_config`."""
         _ = self._get_config(config_path)
 
-    def fluxsite_submit_job(
-        self, config_path: str, skip: list[str]
-    ) -> None:
+    def fluxsite_submit_job(self, config_path: str, skip: list[str]) -> None:
         """Submits the PBS job script step in the fluxsite test workflow."""
         config = self._get_config(config_path)
         self._validate_environment(project=config["project"], modules=config["modules"])
@@ -235,7 +233,7 @@ class Benchcab:
                 self.logger.info(
                     [
                         "Compiling CABLE using custom build script for ",
-                        f"realisation {repo.name}..."
+                        f"realisation {repo.name}...",
                     ]
                 )
                 repo.custom_build(modules=config["modules"])
@@ -310,9 +308,7 @@ class Benchcab:
             run_comparisons(comparisons)
         self.logger.info("Successfully ran comparison tasks")
 
-    def fluxsite(
-        self, config_path: str, no_submit: bool, skip: list[str]
-    ):
+    def fluxsite(self, config_path: str, no_submit: bool, skip: list[str]):
         """Endpoint for `benchcab fluxsite`."""
         self.checkout(config_path)
         self.build(config_path)

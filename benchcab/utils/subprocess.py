@@ -9,7 +9,10 @@ import subprocess
 from abc import ABC as AbstractBaseClass  # noqa: N811
 from abc import abstractmethod
 from typing import Any, Optional
+
 from benchcab.utils import get_logger
+
+DEBUG_LEVEL = 10
 
 
 class SubprocessWrapperInterface(AbstractBaseClass):
@@ -59,7 +62,7 @@ class SubprocessWrapper(SubprocessWrapperInterface):
             _description_
         """
         # Use the logging level (10 = Debug) to determine verbosity.
-        verbose = get_logger().getEffectiveLevel() == 10
+        verbose = get_logger().getEffectiveLevel() == DEBUG_LEVEL
         kwargs: Any = {}
         with contextlib.ExitStack() as stack:
             if capture_output:
@@ -78,7 +81,7 @@ class SubprocessWrapper(SubprocessWrapperInterface):
 
             if verbose:
                 print(cmd)
-            
+
             proc = subprocess.run(cmd, shell=True, check=True, **kwargs)
 
         return proc
