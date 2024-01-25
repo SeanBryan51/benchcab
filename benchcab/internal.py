@@ -6,7 +6,7 @@
 import os
 from pathlib import Path
 
-from benchcab.config import PBSConfig
+from benchcab.utils.pbs import PBSConfig
 
 _, NODENAME, _, _, _ = os.uname()
 

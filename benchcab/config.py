@@ -3,7 +3,6 @@
 
 """A module containing all *_config() functions."""
 from pathlib import Path
-from typing import TypedDict
 
 import yaml
 from cerberus import Validator
@@ -11,14 +10,6 @@ from cerberus import Validator
 import benchcab.utils as bu
 from benchcab import internal
 
-
-class PBSConfig(TypedDict):
-    """Default parameters for PBS runs via benchcab."""
-
-    ncpus: int
-    mem: str
-    walltime: str
-    storage: str
 
 class ConfigValidationError(Exception):
     """When config doesn't match with the defined schema."""

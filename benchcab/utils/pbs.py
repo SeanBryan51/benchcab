@@ -3,8 +3,16 @@
 
 """Contains helper functions for manipulating PBS job scripts."""
 
-from benchcab import internal
-from benchcab.config import PBSConfig
+from typing import TypedDict
+
+
+class PBSConfig(TypedDict):
+    """Default parameters for PBS runs via benchcab."""
+
+    ncpus: int
+    mem: str
+    walltime: str
+    storage: str
 
 
 def render_job_script(
@@ -25,7 +33,6 @@ def render_job_script(
         f"module load {module_name}" for module_name in modules
     )
     verbose_flag = "-v" if verbose else ""
-    # wd9 is subgroup of gdata/ks32
     storage_flags = ["gdata/ks32", "gdata/hh5", "gdata/wd9", *pbs_config["storage"]]
     return f"""#!/bin/bash
 #PBS -l wd
