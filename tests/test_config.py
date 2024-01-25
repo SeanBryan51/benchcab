@@ -11,7 +11,7 @@ import benchcab.utils as bu
 
 @pytest.fixture()
 def config_str(request) -> str:
-    """Provide relative YAML path from data files."""
+    """Provide relative YAML path string from data files."""
     return f"test/{request.param}"
 
 
@@ -101,7 +101,7 @@ def all_optional_config() -> dict:
     indirect=["config_str"],
 )
 def test_read_config_file(config_path, output_config, pytest_error, request):
-    """Test read_config_file() for a file that may/may not exist."""
+    """Test reading config for a file that may/may not exist."""
     with pytest_error:
         config = bc.read_config_file(config_path)
         assert pformat(config) == pformat(request.getfixturevalue(output_config))
@@ -116,7 +116,7 @@ def test_read_config_file(config_path, output_config, pytest_error, request):
     indirect=["config_str"],
 )
 def test_validate_config(config_str, pytest_error):
-    """Test validate_config() for a valid/invalid config file."""
+    """Test schema for a valid/invalid config file."""
     with pytest_error:
         config = bu.load_package_data(config_str)
         assert bc.validate_config(config)
@@ -125,7 +125,6 @@ def test_validate_config(config_str, pytest_error):
 @pytest.mark.parametrize("input_config", ["no_optional_config", "all_optional_config"])
 def test_read_optional_key_add_data(input_config, all_optional_config, request):
     """Test default key-values are added if not provided by config.yaml, and existing keys stay intact."""
-    # Config having no optional keys
     config = request.getfixturevalue(input_config)
     bc.read_optional_key(config)
     assert pformat(config) == pformat(all_optional_config)

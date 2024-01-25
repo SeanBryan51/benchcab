@@ -3,9 +3,6 @@
 from benchcab import internal
 from benchcab.utils.pbs import render_job_script
 
-import pytest
-import re
-
 
 class TestRenderJobScript:
     """Tests for `render_job_script()`."""

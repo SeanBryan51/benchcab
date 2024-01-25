@@ -20,6 +20,7 @@ To use `benchcab`, you need to join the following projects at NCI:
 
 - [ks32][ks32_mynci]
 - [hh5][hh5_mynci]
+- [wd9][wd9_mynci] if not part of the [cable][cable_mynci]
 
 ## Installation
 
@@ -262,6 +263,8 @@ Alternatively, you can also access the ACCESS-NRI User support via [the ACCESS-H
 
 [hh5_mynci]: https://my.nci.org.au/mancini/project/hh5
 [ks32_mynci]: https://my.nci.org.au/mancini/project/ks32
+[wd9_mynci]: https://my.nci.org.au/mancini/project/wd9
+[cable_mynci]: https://my.nci.org.au/mancini/project/cable
 [bench_example]: https://github.com/CABLE-LSM/bench_example.git
 [config_options]: config_options.md
 [forum-support]: https://forum.access-hive.org.au/t/access-help-and-support/908
