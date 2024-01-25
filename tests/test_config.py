@@ -11,13 +11,13 @@ import benchcab.utils as bu
 
 @pytest.fixture()
 def config_str(request) -> str:
-    """Provide relative YAML path string from data files."""
+    """Provide relative YAML path string of data files."""
     return f"test/{request.param}"
 
 
 @pytest.fixture()
 def config_path(config_str: str) -> Path:
-    """Provide absolute YAML Path object from data files."""
+    """Provide absolute YAML Path object of data files."""
     return bu.get_installed_root() / "data" / config_str
 
 

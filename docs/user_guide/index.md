@@ -20,7 +20,7 @@ To use `benchcab`, you need to join the following projects at NCI:
 
 - [ks32][ks32_mynci]
 - [hh5][hh5_mynci]
-- [wd9][wd9_mynci] if not part of the [cable][cable_mynci]
+- [wd9][wd9_mynci] if not part of the [cable][cable_mynci] project
 
 ## Installation
 
