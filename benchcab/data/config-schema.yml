@@ -44,6 +44,7 @@ realisations:
               revision:
                 type: "integer"
       name:
+        nullable: true
         type: "string"
         required: false
       build_script:
@@ -72,7 +73,7 @@ fluxsite:
         "US-Whs"
       ]
       required: false
-    multiprocessing:
+    multiprocess:
       type: "boolean"
       required: false
     pbs:
@@ -83,11 +84,11 @@ fluxsite:
           required: false
         mem:
           type: "string"
-          regex: "^[0-9]+(?i)(mb|gb)$"
+          regex: "(?i)^[0-9]+(mb|gb)$"
           required: false
         walltime:
           type: "string"
-          regex: "^[0-4][0-9]:[0-5][0-9]:[0-5][0-9]$"
+          regex: "^[0-4]?[0-9]:[0-5]?[0-9]:[0-5]?[0-9]$"
           required: false
         storage:
           type: list
