@@ -13,7 +13,7 @@ import benchcab.internal as bi
 import benchcab.utils as bu
 
 # Temporarily set $PROJECT for testing module
-OPTIONAL_CONFIG_PROJECT = "tt1"
+OPTIONAL_CONFIG_PROJECT = "ks32"
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +21,13 @@ def _set_project_env_variable(monkeypatch):
     # Clear existing environment variables first
     with mock.patch.dict(os.environ, clear=True):
         monkeypatch.setenv("PROJECT", OPTIONAL_CONFIG_PROJECT)
+        yield
+
+
+@pytest.fixture(autouse=True)
+def _set_project_validation_dirs():
+    with mock.patch("os.listdir") as mocked_listdir:
+        mocked_listdir.return_value = ["hh5", OPTIONAL_CONFIG_PROJECT]
         yield
 
 
@@ -89,7 +96,7 @@ def all_optional_custom_config(default_only_config) -> dict:
     Reads from config-optional.yml
     """
     config = default_only_config | {
-        "project": "optional",
+        "project": "hh5",
         "fluxsite": {
             "experiment": "AU-Tum",
             "multiprocess": False,
@@ -163,15 +170,28 @@ def test_read_optional_key_add_data(input_config, output_config, request):
     assert pformat(config) == pformat(request.getfixturevalue(output_config))
 
 
-def test_no_project(default_only_config, monkeypatch):
+def test_no_project_name(default_only_config, monkeypatch):
     """If project key and $PROJECT are not provided, then raise error."""
     monkeypatch.delenv("PROJECT")
-    error_msg = re.escape(
+    err_msg = re.escape(
         """Couldn't resolve project: check 'project' in config.yaml
                 and/or $PROJECT set in ~/.config/gadi-login.conf
                 """
     )
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=err_msg):
+        bc.read_optional_key(default_only_config)
+
+
+def test_user_not_in_project(default_only_config):
+    """If user is not in viewable NCI projects, raise error."""
+    default_only_config["project"] = "non_existing"
+    err_msg = re.escape(
+        "User is not a member of project [non_existing]: Check if project key is correct"
+    )
+    with pytest.raises(
+        ValueError,
+        match=err_msg,
+    ):
         bc.read_optional_key(default_only_config)
 
 

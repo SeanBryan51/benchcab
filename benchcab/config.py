@@ -91,6 +91,17 @@ def read_optional_key(config: dict):
             raise ValueError(msg)
         config["project"] = os.environ["PROJECT"]
 
+    # Directory List is obtained from Gadi Resources - https://opus.nci.org.au/display/Help/0.+Welcome+to+Gadi
+    data_dirs = ["/g/data", "/scratch"]
+    groups = list(
+        set([group for data_dir in data_dirs for group in os.listdir(data_dir)])
+    )
+
+    if config["project"] not in groups:
+        msg = f"User is not a member of project [{config['project']}]: Check if project key is correct"
+
+        raise ValueError(msg)
+
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name")
@@ -152,8 +163,8 @@ def read_config(config_path: str) -> dict:
     """
     # Read configuration file
     config = read_config_file(config_path)
-    # Populate configuration dict with optional keys
-    read_optional_key(config)
     # Validate and return.
     validate_config(config)
+    # Populate configuration dict with optional keys
+    read_optional_key(config)
     return config
