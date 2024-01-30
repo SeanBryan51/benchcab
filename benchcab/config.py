@@ -3,7 +3,6 @@
 
 """A module containing all *_config() functions."""
 import os
-import sys
 from pathlib import Path
 
 import yaml
@@ -91,10 +90,14 @@ def read_optional_key(config: dict):
             raise ValueError(msg)
         config["project"] = os.environ["PROJECT"]
 
-    # Directory List is obtained from Gadi Resources - https://opus.nci.org.au/display/Help/0.+Welcome+to+Gadi
-    data_dirs = ["/g/data", "/scratch"]
     groups = list(
-        set([group for data_dir in data_dirs for group in os.listdir(data_dir)])
+        set(
+            [
+                group
+                for data_dir in internal.USER_PROJECT_DIRS
+                for group in os.listdir(data_dir)
+            ]
+        )
     )
 
     if config["project"] not in groups:
