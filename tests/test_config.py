@@ -17,16 +17,6 @@ OPTIONAL_CONFIG_PROJECT = "ks32"
 
 
 # Temporarily set $PROJECT for testing module
-@pytest.fixture(autouse=True, scope="module")
-def _set_project_validation_dirs():
-    with mock.patch("os.listdir") as mocked_listdir:
-        mocked_listdir.return_value = [
-            NO_OPTIONAL_CONFIG_PROJECT,
-            OPTIONAL_CONFIG_PROJECT,
-        ]
-        yield
-
-
 @pytest.fixture(autouse=True)
 def _set_project_env_variable(monkeypatch):
     # Clear existing environment variables first
@@ -162,6 +152,13 @@ def test_validate_config(config_str, pytest_error):
 class TestReadOptionalKey:
     """Tests related to adding optional keys in config."""
 
+    @pytest.fixture()
+    def all_optional_default_config_no_project(
+        self, all_optional_default_config
+    ) -> dict:
+        """Set project keyword to None."""
+        return all_optional_default_config | {"project": None}
+
     @pytest.mark.parametrize(
         ("input_config", "output_config"),
         [
@@ -176,28 +173,15 @@ class TestReadOptionalKey:
         bc.read_optional_key(config)
         assert pformat(config) == pformat(request.getfixturevalue(output_config))
 
-    def test_no_project_name(self, no_optional_config, monkeypatch):
+    def test_no_project_name(
+        self, no_optional_config, all_optional_default_config_no_project, monkeypatch
+    ):
         """If project key and $PROJECT are not provided, then raise error."""
         monkeypatch.delenv("PROJECT")
-        err_msg = re.escape(
-            """Couldn't resolve project: check 'project' in config.yaml
-                and/or $PROJECT set in ~/.config/gadi-login.conf
-            """
+        bc.read_optional_key(no_optional_config)
+        assert pformat(no_optional_config) == pformat(
+            all_optional_default_config_no_project
         )
-        with pytest.raises(ValueError, match=err_msg):
-            bc.read_optional_key(no_optional_config)
-
-    def test_user_not_in_project(self, no_optional_config):
-        """If user is not in viewable NCI projects, raise error."""
-        no_optional_config["project"] = "non_existing"
-        err_msg = re.escape(
-            "User is not a member of project [non_existing]: Check if project key is correct"
-        )
-        with pytest.raises(
-            ValueError,
-            match=err_msg,
-        ):
-            bc.read_optional_key(no_optional_config)
 
 
 @pytest.mark.parametrize(

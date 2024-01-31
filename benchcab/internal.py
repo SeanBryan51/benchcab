@@ -28,10 +28,6 @@ FLUXSITE_DEFAULT_MULTIPROCESS = True
 # Path to the user's current working directory
 CWD = Path.cwd()
 
-# Directory List is obtained from Gadi User Guide in Section - Gadi Resources
-# https://opus.nci.org.au/display/Help/0.+Welcome+to+Gadi
-USER_PROJECT_DIRS = ["/g/data", "/scratch"]
-
 # Path to the user's home directory
 HOME_DIR = Path(os.environ["HOME"])
 

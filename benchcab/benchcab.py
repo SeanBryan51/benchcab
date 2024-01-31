@@ -64,15 +64,21 @@ class Benchcab:
             )
             sys.exit(1)
 
-        required_groups = [project, "ks32", "hh5"]
+        if project is None:
+            msg = """Couldn't resolve project: check 'project' in config.yaml
+                and/or $PROJECT set in ~/.config/gadi-login.conf
+                """
+            raise AttributeError(msg)
+
+        required_groups = set([project, "ks32", "hh5"])
         groups = [grp.getgrgid(gid).gr_name for gid in os.getgroups()]
-        if not set(required_groups).issubset(groups):
-            print(
-                "Error: user does not have the required group permissions.",
-                "The required groups are:",
-                ", ".join(required_groups),
+        if not required_groups.issubset(groups):
+            msg = (
+                f"""Error: user does not have the required group permissions.,
+                The required groups are:,
+                {", ".join(required_groups)}""",
             )
-            sys.exit(1)
+            raise PermissionError(msg)
 
         for modname in modules:
             if not self.modules_handler.module_is_avail(modname):

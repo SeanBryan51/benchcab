@@ -83,27 +83,7 @@ def read_optional_key(config: dict):
         The configuration file with with/without optional keys
     """
     if "project" not in config:
-        if "PROJECT" not in os.environ:
-            msg = """Couldn't resolve project: check 'project' in config.yaml
-                and/or $PROJECT set in ~/.config/gadi-login.conf
-                """
-            raise ValueError(msg)
-        config["project"] = os.environ["PROJECT"]
-
-    groups = list(
-        set(
-            [
-                group
-                for data_dir in internal.USER_PROJECT_DIRS
-                for group in os.listdir(data_dir)
-            ]
-        )
-    )
-
-    if config["project"] not in groups:
-        msg = f"User is not a member of project [{config['project']}]: Check if project key is correct"
-
-        raise ValueError(msg)
+        config["project"] = os.environ.get("PROJECT", None)
 
     if "realisations" in config:
         for r in config["realisations"]:
@@ -166,8 +146,8 @@ def read_config(config_path: str) -> dict:
     """
     # Read configuration file
     config = read_config_file(config_path)
-    # Validate and return.
-    validate_config(config)
     # Populate configuration dict with optional keys
     read_optional_key(config)
+    # Validate and return.
+    validate_config(config)
     return config
