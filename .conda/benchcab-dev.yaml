@@ -1,9 +1,13 @@
 name: benchcab-dev
 channels:
   - conda-forge
+  - accessnri
+  - coecms
   - defaults
+
 dependencies:
   - python=3.9
+  - payu
   - pip
   - f90nml
   - netcdf4
