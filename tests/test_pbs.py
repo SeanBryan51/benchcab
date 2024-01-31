@@ -13,6 +13,7 @@ class TestRenderJobScript:
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
             f"""#!/bin/bash
@@ -24,7 +25,7 @@ class TestRenderJobScript:
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -46,6 +47,7 @@ set -ev
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             verbose=True,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
@@ -58,7 +60,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -80,6 +82,7 @@ set -ev
             project="tm70",
             config_path="/path/to/config.yaml",
             modules=["foo", "bar", "baz"],
+            pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             skip_bitwise_cmp=True,
             benchcab_path="/absolute/path/to/benchcab",
         ) == (
@@ -92,7 +95,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9
 
 module purge
 module load foo
@@ -130,40 +133,7 @@ set -ev
 #PBS -P tm70
 #PBS -j oe
 #PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5+gdata/foo
-
-module purge
-module load foo
-module load bar
-module load baz
-
-set -ev
-
-/absolute/path/to/benchcab fluxsite-run-tasks --config=/path/to/config.yaml 
-
-"""
-        )
-
-    def test_default_pbs_config(self):
-        """Success case: if the pbs_config is empty, use the default values."""
-        assert render_job_script(
-            project="tm70",
-            config_path="/path/to/config.yaml",
-            modules=["foo", "bar", "baz"],
-            skip_bitwise_cmp=True,
-            benchcab_path="/absolute/path/to/benchcab",
-            pbs_config={},
-        ) == (
-            f"""#!/bin/bash
-#PBS -l wd
-#PBS -l ncpus={internal.FLUXSITE_DEFAULT_PBS["ncpus"]}
-#PBS -l mem={internal.FLUXSITE_DEFAULT_PBS["mem"]}
-#PBS -l walltime={internal.FLUXSITE_DEFAULT_PBS["walltime"]}
-#PBS -q normal
-#PBS -P tm70
-#PBS -j oe
-#PBS -m e
-#PBS -l storage=gdata/ks32+gdata/hh5
+#PBS -l storage=gdata/ks32+gdata/hh5+gdata/wd9+gdata/foo
 
 module purge
 module load foo

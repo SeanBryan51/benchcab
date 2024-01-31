@@ -195,10 +195,6 @@ class TestSetupTask:
             },
             "output": {"restart": False},
             "fixedco2": internal.CABLE_FIXED_CO2_CONC,
-            "casafile": {
-                "phen": str(internal.PHEN_FILE.absolute()),
-                "cnpbiome": str(internal.CNPBIOME_FILE.absolute()),
-            },
             "spinup": False,
             "some_setting": True,
             "some_branch_specific_setting": True,

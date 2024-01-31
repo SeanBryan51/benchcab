@@ -95,11 +95,10 @@ class TestConfigureExperiment:
         )
         assert config["input"] == [
             str(
-                Path(
-                    "src/CABLE-AUX/core/biogeophys/def_veg_params_zr_clitt_albedo_fix.txt"
-                ).absolute()
+                internal.CABLE_AUX_DIR
+                / Path("core/biogeophys/def_veg_params_zr_clitt_albedo_fix.txt")
             ),
-            str(Path("src/CABLE-AUX/core/biogeophys/def_soil_params.txt").absolute()),
+            str(internal.CABLE_AUX_DIR / Path("core/biogeophys/def_soil_params.txt")),
         ]
         assert config["laboratory"] == str(internal.PAYU_LABORATORY_DIR.absolute())
         assert config["some_parameter"] == "foo"

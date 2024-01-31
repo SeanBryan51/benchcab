@@ -102,10 +102,10 @@ class Benchcab:
     def _get_models(self, config: dict) -> list[Model]:
         if not self._models:
             for id, sub_config in enumerate(config["realisations"]):
-                name = sub_config.get("name")
                 repo = create_repo(
                     spec=sub_config.pop("repo"),
-                    path=internal.SRC_DIR / name if name else internal.SRC_DIR,
+                    path=internal.SRC_DIR
+                    / (sub_config["name"] if sub_config["name"] else Path()),
                 )
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models
@@ -114,13 +114,9 @@ class Benchcab:
         if not self._fluxsite_tasks:
             self._fluxsite_tasks = fluxsite.get_fluxsite_tasks(
                 models=self._get_models(config),
-                science_configurations=config.get(
-                    "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
-                ),
+                science_configurations=config["science_configurations"],
                 fluxsite_forcing_file_names=get_met_forcing_file_names(
-                    config.get("fluxsite", {}).get(
-                        "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
-                    )
+                    config["fluxsite"]["experiment"]
                 ),
             )
         return self._fluxsite_tasks
@@ -129,13 +125,9 @@ class Benchcab:
         if not self._spatial_tasks:
             self._spatial_tasks = spatial.get_spatial_tasks(
                 models=self._get_models(config),
-                met_forcings=config.get("spatial", {}).get(
-                    "met_forcings", internal.SPATIAL_DEFAULT_MET_FORCINGS
-                ),
-                science_configurations=config.get(
-                    "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
-                ),
-                payu_args=config.get("spatial", {}).get("payu", {}).get("args"),
+                met_forcings=config["spatial"]["met_forcings"],
+                science_configurations=config["science_configurations"],
+                payu_args=config["spatial"]["payu"]["args"],
             )
         return self._spatial_tasks
 
@@ -163,10 +155,10 @@ class Benchcab:
                 project=config["project"],
                 config_path=config_path,
                 modules=config["modules"],
+                pbs_config=config["fluxsite"]["pbs"],
                 verbose=verbose,
                 skip_bitwise_cmp="fluxsite-bitwise-cmp" in skip,
                 benchcab_path=str(self.benchcab_exe_path),
-                pbs_config=config.get("fluxsite", {}).get("pbs"),
             )
             file.write(contents)
 
@@ -204,14 +196,6 @@ class Benchcab:
         for model in self._get_models(config):
             model.repo.checkout(verbose=verbose)
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
-
-        # TODO(Sean) we should archive revision numbers for CABLE-AUX
-        cable_aux_repo = SVNRepo(
-            svn_root=internal.CABLE_SVN_ROOT,
-            branch_path=internal.CABLE_AUX_RELATIVE_SVN_PATH,
-            path=internal.SRC_DIR / "CABLE-AUX",
-        )
-        cable_aux_repo.checkout(verbose=verbose)
 
         rev_number_log_path = next_path("rev_number-*.log")
         print(f"Writing revision number info to {rev_number_log_path}")
@@ -261,14 +245,8 @@ class Benchcab:
         tasks = self._get_fluxsite_tasks(config)
 
         print("Running fluxsite tasks...")
-        try:
-            multiprocess = config["fluxsite"]["multiprocess"]
-        except KeyError:
-            multiprocess = internal.FLUXSITE_DEFAULT_MULTIPROCESS
-        if multiprocess:
-            ncpus = config.get("pbs", {}).get(
-                "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
-            )
+        if config["fluxsite"]["multiprocess"]:
+            ncpus = config["fluxsite"]["pbs"]["ncpus"]
             fluxsite.run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
             fluxsite.run_tasks(tasks, verbose=verbose)
@@ -290,15 +268,8 @@ class Benchcab:
         )
 
         print("Running comparison tasks...")
-        try:
-            multiprocess = config["fluxsite"]["multiprocess"]
-        except KeyError:
-            multiprocess = internal.FLUXSITE_DEFAULT_MULTIPROCESS
-        if multiprocess:
-            try:
-                ncpus = config["fluxsite"]["pbs"]["ncpus"]
-            except KeyError:
-                ncpus = internal.FLUXSITE_DEFAULT_PBS["ncpus"]
+        if config["fluxsite"]["multiprocess"]:
+            ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
         else:
             run_comparisons(comparisons, verbose=verbose)
