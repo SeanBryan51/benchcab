@@ -81,27 +81,7 @@ class SpatialTask:
 
         # Here we prepend inputs to the `input` list so that payu knows to use
         # our inputs over the pre-existing inputs in the config file:
-        config["input"] = [
-            # Note: only necessary for CABLE v2
-            str(
-                (
-                    internal.CABLE_AUX_DIR
-                    / "core"
-                    / "biogeophys"
-                    / "def_veg_params_zr_clitt_albedo_fix.txt"
-                ).absolute()
-            ),
-            # Note: only necessary for CABLE v2
-            str(
-                (
-                    internal.CABLE_AUX_DIR
-                    / "core"
-                    / "biogeophys"
-                    / "def_soil_params.txt"
-                ).absolute()
-            ),
-            *config.get("input", []),
-        ]
+        config["input"] = config.get("input", [])
 
         config["laboratory"] = str(internal.PAYU_LABORATORY_DIR.absolute())
 

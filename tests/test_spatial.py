@@ -93,13 +93,6 @@ class TestConfigureExperiment:
                 internal.SRC_DIR / "test-branch" / "offline" / internal.CABLE_MPI_EXE
             ).absolute()
         )
-        assert config["input"] == [
-            str(
-                internal.CABLE_AUX_DIR
-                / Path("core/biogeophys/def_veg_params_zr_clitt_albedo_fix.txt")
-            ),
-            str(internal.CABLE_AUX_DIR / Path("core/biogeophys/def_soil_params.txt")),
-        ]
         assert config["laboratory"] == str(internal.PAYU_LABORATORY_DIR.absolute())
         assert config["some_parameter"] == "foo"
 
