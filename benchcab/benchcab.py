@@ -122,10 +122,10 @@ class Benchcab:
     def _get_models(self, config: dict) -> list[Model]:
         if not self._models:
             for id, sub_config in enumerate(config["realisations"]):
-                name = sub_config.get("name")
                 repo = create_repo(
                     spec=sub_config.pop("repo"),
-                    path=internal.SRC_DIR / name if name else internal.SRC_DIR,
+                    path=internal.SRC_DIR
+                    / (sub_config["name"] if sub_config["name"] else Path()),
                 )
                 self._models.append(Model(repo=repo, model_id=id, **sub_config))
         return self._models
@@ -134,13 +134,9 @@ class Benchcab:
         """A helper method that initialises and returns the `tasks` attribute."""
         self.tasks = get_fluxsite_tasks(
             models=self._get_models(config),
-            science_configurations=config.get(
-                "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
-            ),
+            science_configurations=config["science_configurations"],
             fluxsite_forcing_file_names=get_met_forcing_file_names(
-                config.get("fluxsite", {}).get(
-                    "experiment", internal.FLUXSITE_DEFAULT_EXPERIMENT
-                )
+                config["fluxsite"]["experiment"]
             ),
         )
         return self.tasks
@@ -171,7 +167,6 @@ class Benchcab:
                 modules=config["modules"],
                 skip_bitwise_cmp="fluxsite-bitwise-cmp" in skip,
                 benchcab_path=str(self.benchcab_exe_path),
-                pbs_config=config.get("fluxsite", {}).get("pbs"),
             )
             file.write(contents)
 
@@ -212,7 +207,7 @@ class Benchcab:
             branch_path=internal.CABLE_AUX_RELATIVE_SVN_PATH,
             path=internal.SRC_DIR / "CABLE-AUX",
         )
-        cable_aux_repo.checkout()
+        cable_aux_repo.checkout(verbose=verbose)
 
         rev_number_log_path = next_path("rev_number-*.log")
         self.logger.info(f"Writing revision number info to {rev_number_log_path}")
@@ -260,7 +255,7 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        self.logger.info("Running fluxsite tasks...")
+        print("Running fluxsite tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -269,7 +264,7 @@ class Benchcab:
             ncpus = config.get("pbs", {}).get(
                 "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
             )
-            run_tasks_in_parallel(tasks, n_processes=ncpus)
+            run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
         else:
             run_tasks(tasks)
         self.logger.info("Successfully ran fluxsite tasks")
@@ -287,7 +282,7 @@ class Benchcab:
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         comparisons = get_fluxsite_comparisons(tasks)
 
-        self.logger.info("Running comparison tasks...")
+        print("Running comparison tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -297,7 +292,7 @@ class Benchcab:
                 ncpus = config["fluxsite"]["pbs"]["ncpus"]
             except KeyError:
                 ncpus = internal.FLUXSITE_DEFAULT_PBS["ncpus"]
-            run_comparisons_in_parallel(comparisons, n_processes=ncpus)
+            run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
         else:
             run_comparisons(comparisons)
         self.logger.info("Successfully ran comparison tasks")

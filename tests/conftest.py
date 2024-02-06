@@ -88,7 +88,7 @@ def config():
                 "walltime": "01:00:00",
                 "storage": ["gdata/foo123"],
             },
-            "multiprocessing": True,
+            "multiprocess": True,
         },
     }
 
