@@ -12,7 +12,9 @@ from pathlib import Path
 
 import yaml
 
-from benchcab.utils.singleton_logger import SingletonLogger
+# from benchcab.utils.singleton_logger import SingletonLogger
+import logging
+import sys
 
 # List of one-argument decoding functions.
 PACKAGE_DATA_DECODERS = dict(json=json.loads, yml=yaml.safe_load)
@@ -50,19 +52,41 @@ def load_package_data(filename: str) -> dict:
     return PACKAGE_DATA_DECODERS[ext](raw)
 
 
-def get_logger(name="benchcab", level="debug"):
-    """Get a singleton logger object.
+def get_logger(name='benchcab', level='debug'):
+    """Get a logger instance.
 
     Parameters
     ----------
     name : str, optional
-        Name of the logger, by default 'benchcab'
+        Name, by default 'benchcab'
     level : str, optional
-        Level of logging, by default 'debug'
+        Level, by default 'debug'
 
     Returns
     -------
-    benchcab.utils.SingletonLogger
-        Logger instance.
+    logging.Logger
+        A logger instance guaranteed to be singleton if called with the same params.
+    
     """
-    return SingletonLogger(name=name, level=level)
+    # Get or create a logger
+    logger = logging.getLogger(name)
+
+    # Workaround for native singleton property.
+    # NOTE: This will ignore the provided level and give you whatever was first set.
+    if logger.level != logging.NOTSET:
+        return logger
+
+    # Set the level
+    level = getattr(logging, level.upper())
+    logger.setLevel(level)
+
+    # Create the formatter
+    log_format = "%(asctime)s - %(levelname)s - %(module)s.%(filename)s:%(lineno)s - %(message)s"
+    formatter = logging.Formatter(log_format)
+
+    # Create/set the handler to point to stdout
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger

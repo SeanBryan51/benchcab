@@ -159,11 +159,11 @@ class Benchcab:
 
         job_script_path = Path(internal.QSUB_FNAME)
         self.logger.info(
-            [
-                "Creating PBS job script to run fluxsite tasks on compute "
-                f"nodes: {job_script_path}"
-            ]
+            'Creating PBS job script to run fluxsite tasks on compute nodes'
         )
+
+        self.logger.info(f'job_script_path = {job_script_path}')
+        
         with job_script_path.open("w", encoding="utf-8") as file:
             contents = render_job_script(
                 project=config["project"],
@@ -185,17 +185,13 @@ class Benchcab:
             self.logger.error(exc.output)
             raise
 
-        self.logger.info(
-            [
-                f"PBS job submitted: {proc.stdout.strip()}",
-                "The CABLE log file for each task is written to",
-                f"{internal.FLUXSITE_DIRS['LOG']}/<task_name>_log.txt",
-                "The CABLE standard output for each task is written to",
-                f"{internal.FLUXSITE_DIRS['TASKS']}/<task_name>/out.txt",
-                "The NetCDF output for each task is written to",
-                f"{internal.FLUXSITE_DIRS['OUTPUT']}/<task_name>_out.nc",
-            ]
-        )
+        self.logger.info(f'PBS job submitted: {proc.stdout.strip()}')
+        self.logger.info('CABLE log file for each task is written to:')
+        self.logger.info(f"{internal.FLUXSITE_DIRS['LOG']}/<task_name>_log.txt")
+        self.logger.info("The CABLE standard output for each task is written to:")
+        self.logger.info(f"{internal.FLUXSITE_DIRS['TASKS']}/<task_name>/out.txt")
+        self.logger.info("The NetCDF output for each task is written to:")
+        self.logger.info(f"{internal.FLUXSITE_DIRS['OUTPUT']}/<task_name>_out.nc")
 
     def checkout(self, config_path: str):
         """Endpoint for `benchcab checkout`."""
@@ -230,13 +226,11 @@ class Benchcab:
 
         for repo in self._get_models(config):
             if repo.build_script:
-                self.logger.info(
-                    [
-                        "Compiling CABLE using custom build script for ",
-                        f"realisation {repo.name}...",
-                    ]
-                )
+                
+                self.logger.info("Compiling CABLE using custom build script for")
+                self.logger.info(f"realisation {repo.name}")
                 repo.custom_build(modules=config["modules"])
+                
             else:
                 build_mode = "with MPI" if internal.MPI else "serially"
                 self.logger.info(

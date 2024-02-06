@@ -18,9 +18,9 @@ import netCDF4
 from benchcab import __version__, internal
 from benchcab.comparison import ComparisonTask
 from benchcab.model import Model
-from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, mkdir
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
+from benchcab.utils import get_logger
 
 # fmt: off
 # ======================================================
@@ -289,12 +289,9 @@ class Task:
         """Runs a single fluxsite task."""
         task_name = self.get_task_name()
         task_dir = internal.FLUXSITE_DIRS["TASKS"] / task_name
-        self.logger.debug(
-            [
-                f"Running task {task_name}... CABLE standard output "
-                f"saved in {task_dir / internal.CABLE_STDOUT_FILENAME}"
-            ]
-        )
+        self.logger.debug(f"Running task {task_name}... CABLE standard output ")
+        self.logger.debug(f"saved in {task_dir / internal.CABLE_STDOUT_FILENAME}")
+
         try:
             self.run_cable()
             self.add_provenance_info()
@@ -322,7 +319,7 @@ class Task:
                     output_file=stdout_path.relative_to(task_dir),
                 )
         except CalledProcessError as exc:
-            self.logger.error(f"Error: CABLE returned an error for task {task_name}")
+            self.logger.debug(f"Error: CABLE returned an error for task {task_name}")
             raise CableError from exc
 
     def add_provenance_info(self):
@@ -334,7 +331,7 @@ class Task:
         nc_output_path = internal.FLUXSITE_DIRS["OUTPUT"] / self.get_output_filename()
         nml = f90nml.read(
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name() / internal.CABLE_NML
-        )
+        )   
         self.logger.debug(f"Adding attributes to output file: {nc_output_path}")
         with netCDF4.Dataset(nc_output_path, "r+") as nc_output:
             nc_output.setncatts(

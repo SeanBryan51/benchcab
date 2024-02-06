@@ -21,9 +21,17 @@ def test_load_package_data_fail():
         bu.load_package_data("config-missing.yml")
 
 
-def test_get_logger_singleton():
+def test_get_logger_singleton_pass():
     """Test get_logger() returns a singleton object..."""
     logger1 = bu.get_logger(name="benchcab")
     logger2 = bu.get_logger(name="benchcab")
 
     assert logger1 is logger2
+
+
+def test_get_logger_singleton_fail():
+    """Test get_logger() returns a singleton object..."""
+    logger1 = bu.get_logger(name="benchcab")
+    logger2 = bu.get_logger(name="benchcab2")
+
+    assert logger1 is not logger2

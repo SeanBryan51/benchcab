@@ -21,6 +21,9 @@ def parse_and_dispatch(parser):
     # Intercept the verbosity flag to engage the logger
     log_level = "debug" if args.get("verbose", False) is True else "info"
 
+    # Remove the verbose argument
+    _ = args.pop('verbose')
+
     # We just need to instantiate this with the desired level
     get_logger(level=log_level)
 
