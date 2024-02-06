@@ -52,7 +52,7 @@ def load_package_data(filename: str) -> dict:
     return PACKAGE_DATA_DECODERS[ext](raw)
 
 
-def get_logger(name='benchcab', level='debug'):
+def get_logger(name="benchcab", level="debug"):
     """Get a logger instance.
 
     Parameters
@@ -66,7 +66,7 @@ def get_logger(name='benchcab', level='debug'):
     -------
     logging.Logger
         A logger instance guaranteed to be singleton if called with the same params.
-    
+
     """
     # Get or create a logger
     logger = logging.getLogger(name)
@@ -81,7 +81,9 @@ def get_logger(name='benchcab', level='debug'):
     logger.setLevel(level)
 
     # Create the formatter
-    log_format = "%(asctime)s - %(levelname)s - %(module)s.%(filename)s:%(lineno)s - %(message)s"
+    log_format = (
+        "%(asctime)s - %(levelname)s - %(module)s.%(filename)s:%(lineno)s - %(message)s"
+    )
     formatter = logging.Formatter(log_format)
 
     # Create/set the handler to point to stdout

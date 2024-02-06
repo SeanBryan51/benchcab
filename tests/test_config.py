@@ -1,4 +1,5 @@
 """`pytest` tests for config.py."""
+
 import pytest
 
 import benchcab.config as bc

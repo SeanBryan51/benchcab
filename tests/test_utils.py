@@ -1,4 +1,5 @@
 """Tests for utilities."""
+
 import pytest
 
 import benchcab.utils as bu

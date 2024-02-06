@@ -13,7 +13,7 @@ class Singleton(type):
         -------
         object
             The object that metaclasses this base class.
-        
+
         """
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)

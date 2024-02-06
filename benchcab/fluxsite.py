@@ -331,7 +331,7 @@ class Task:
         nc_output_path = internal.FLUXSITE_DIRS["OUTPUT"] / self.get_output_filename()
         nml = f90nml.read(
             internal.FLUXSITE_DIRS["TASKS"] / self.get_task_name() / internal.CABLE_NML
-        )   
+        )
         self.logger.debug(f"Adding attributes to output file: {nc_output_path}")
         with netCDF4.Dataset(nc_output_path, "r+") as nc_output:
             nc_output.setncatts(

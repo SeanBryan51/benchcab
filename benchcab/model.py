@@ -105,7 +105,7 @@ class Model:
         self.logger.debug(
             f"Modifying {tmp_script_path.name}: remove lines that call environment modules"
         )
-        
+
         remove_module_lines(tmp_script_path)
 
         with chdir(build_script_path.parent), self.modules_handler.load(modules):
