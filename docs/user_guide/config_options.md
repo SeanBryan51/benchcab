@@ -32,7 +32,7 @@ The different running modes of `benchcab` are solely dependent on the options us
 
 ## project
 
-: **Default:** _required key, no default_. :octicons-dash-24: NCI project ID to charge the simulations to.
+: **Default:** user's default project, _optional key_. :octicons-dash-24: NCI project ID to charge the simulations to. The user's default project defined in the $PROJECT environment variable is used by default.
 
 ``` yaml
 
