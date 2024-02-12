@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """A module containing all *_config() functions."""
+import os
 from pathlib import Path
 
 import yaml
@@ -81,6 +82,9 @@ def read_optional_key(config: dict):
     config : dict
         The configuration file with with/without optional keys
     """
+    if "project" not in config:
+        config["project"] = os.environ.get("PROJECT", None)
+
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name")
