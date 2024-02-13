@@ -15,6 +15,7 @@ def parse_and_dispatch(parser):
     ----
     parser : argparse.ArgumentParser
         Parser object.
+
     """
     args = vars(parser.parse_args(sys.argv[1:] if sys.argv[1:] else ["-h"]))
 

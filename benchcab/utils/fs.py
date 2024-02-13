@@ -67,6 +67,7 @@ def mkdir(new_path: Path, **kwargs):
         Path to the directory to be created.
     **kwargs : dict, optional
         Additional options for `pathlib.Path.mkdir()`
+
     """
     get_logger().debug(f"Creating {new_path} directory")
     new_path.mkdir(**kwargs)

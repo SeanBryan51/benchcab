@@ -49,6 +49,7 @@ class Model:
             Build script, by default None
         model_id : Optional[int], optional
             Model ID, by default None
+
         """
         self.repo = repo
         self.name = name if name else repo.get_branch_name()

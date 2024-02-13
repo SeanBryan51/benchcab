@@ -31,6 +31,7 @@ class Repo(AbstractBaseClass):
         -------
         str
             Human readable string describing the latest revision.
+
         """
 
     @abstractmethod
@@ -41,6 +42,7 @@ class Repo(AbstractBaseClass):
         -------
         str
             Branch name of the source code.
+
         """
 
 
@@ -51,6 +53,7 @@ class GitRepo(Repo):
     ----------
     subprocess_handler: SubprocessWrapper
         Object for handling subprocess calls.
+
     """
 
     subprocess_handler = SubprocessWrapper()
@@ -73,6 +76,7 @@ class GitRepo(Repo):
         commit: str, optional
             Commit hash (long). When specified the repository will reset to this
             commit when cloning.
+
         """
         self.url = url
         self.branch = branch
@@ -103,6 +107,7 @@ class GitRepo(Repo):
         -------
         str
             Human readable string describing the latest revision.
+
         """
         repo = git.Repo(self.path)
         return f"commit {repo.head.commit.hexsha}"
@@ -114,6 +119,7 @@ class GitRepo(Repo):
         -------
         str
             Branch name of the source code.
+
         """
         return self.branch
 
@@ -125,6 +131,7 @@ class SVNRepo(Repo):
     ----------
     subprocess_handler: SubprocessWrapper
         Object for handling subprocess calls.
+
     """
 
     subprocess_handler: SubprocessWrapperInterface = SubprocessWrapper()
@@ -152,6 +159,7 @@ class SVNRepo(Repo):
         revision: int, optional
             SVN revision number. When specified the branch will be set to this
             revision on checkout.
+
         """
         self.svn_root = svn_root
         self.branch_path = branch_path
@@ -181,6 +189,7 @@ class SVNRepo(Repo):
         -------
         str
             Human readable string describing the latest revision.
+
         """
         proc = self.subprocess_handler.run_cmd(
             f"svn info --show-item last-changed-revision {self.path}",
@@ -195,6 +204,7 @@ class SVNRepo(Repo):
         -------
         str
             Branch name of the source code.
+
         """
         return Path(self.branch_path).name
 
@@ -218,6 +228,7 @@ def create_repo(spec: dict, path: Path) -> Repo:
     -------
     Repo
         A subclass instance of `Repo`.
+
     """
     if "git" in spec:
         if "url" not in spec["git"]:

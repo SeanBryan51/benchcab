@@ -18,9 +18,9 @@ import netCDF4
 from benchcab import __version__, internal
 from benchcab.comparison import ComparisonTask
 from benchcab.model import Model
+from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, mkdir
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-from benchcab.utils import get_logger
 
 # fmt: off
 # ======================================================
@@ -44,6 +44,7 @@ def deep_update(mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, A
     -------
     Dict[KeyType, Any]
         Updated mapping.
+    
     """
     updated_mapping = mapping.copy()
     for updating_mapping in updating_mappings:
@@ -129,6 +130,7 @@ class Task:
             Science configuration ID.
         sci_config : dict
             Science configuration.
+
         """
         self.model = model
         self.met_forcing_file = met_forcing_file

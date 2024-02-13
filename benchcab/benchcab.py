@@ -26,7 +26,7 @@ from benchcab.model import Model
 from benchcab.utils import get_logger
 from benchcab.utils.fs import mkdir, next_path
 from benchcab.utils.pbs import render_job_script
-from benchcab.utils.repo import SVNRepo, create_repo
+from benchcab.utils.repo import create_repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 from benchcab.workdir import setup_fluxsite_directory_tree
 
@@ -50,6 +50,7 @@ class Benchcab:
             Path to the executable.
         validate_env : bool, optional
             Validate the environment, by default True
+
         """
         self.benchcab_exe_path = benchcab_exe_path
         self.validate_env = validate_env
@@ -106,11 +107,10 @@ class Benchcab:
             paths = list(internal.MET_DIR.glob(f"{site_id}*"))
             if not paths:
                 self.logger.error(
-                    [
-                        f"Failed to infer met file for site id '{site_id}' in "
-                        f"{internal.MET_DIR}."
-                    ]
+                    f"Failed to infer met file for site id '{site_id}' in "
                 )
+                self.logger.error(f"{internal.MET_DIR}.")
+
                 sys.exit(1)
             if len(paths) > 1:
                 self.logger.error(
@@ -262,7 +262,7 @@ class Benchcab:
             ncpus = config.get("pbs", {}).get(
                 "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
             )
-            run_tasks_in_parallel(tasks, n_processes=ncpus, verbose=verbose)
+            run_tasks_in_parallel(tasks, n_processes=ncpus)
         else:
             run_tasks(tasks)
         self.logger.info("Successfully ran fluxsite tasks")
@@ -290,7 +290,7 @@ class Benchcab:
                 ncpus = config["fluxsite"]["pbs"]["ncpus"]
             except KeyError:
                 ncpus = internal.FLUXSITE_DEFAULT_PBS["ncpus"]
-            run_comparisons_in_parallel(comparisons, n_processes=ncpus, verbose=verbose)
+            run_comparisons_in_parallel(comparisons, n_processes=ncpus)
         else:
             run_comparisons(comparisons)
         self.logger.info("Successfully ran comparison tasks")

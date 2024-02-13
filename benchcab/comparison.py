@@ -32,6 +32,7 @@ class ComparisonTask:
             Files.
         task_name : str
             Name of the task.
+
         """
         self.files = files
         self.task_name = task_name
@@ -57,12 +58,8 @@ class ComparisonTask:
             with output_file.open("w", encoding="utf-8") as file:
                 file.write(exc.stdout)
 
-            self.logger.error(
-                [
-                    f"Failure: files {file_a.name} {file_b.name} differ. ",
-                    f"Results of diff have been written to {output_file}",
-                ]
-            )
+            self.logger.error(f"Failure: files {file_a.name} {file_b.name} differ. ")
+            self.logger.error(f"Results of diff have been written to {output_file}")
 
         sys.stdout.flush()
 

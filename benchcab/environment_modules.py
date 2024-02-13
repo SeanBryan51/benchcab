@@ -72,6 +72,7 @@ class EnvironmentModules(EnvironmentModulesInterface):
         -------
         bool
             True if available, False otherwise.
+
         """
         return module("is-avail", *args)
 
@@ -82,6 +83,7 @@ class EnvironmentModules(EnvironmentModulesInterface):
         -------
         bool
             True if loaded, False otherwise.
+
         """
         return module("is-loaded", *args)
 
@@ -92,6 +94,7 @@ class EnvironmentModules(EnvironmentModulesInterface):
         ------
         EnvironmentModulesError
             Raised when module fails to load.
+
         """
         if not module("load", *args):
             raise EnvironmentModulesError("Failed to load modules: " + " ".join(args))
@@ -103,6 +106,7 @@ class EnvironmentModules(EnvironmentModulesInterface):
         ------
         EnvironmentModulesError
             Raised when module fails to unload.
+
         """
         if not module("unload", *args):
             raise EnvironmentModulesError("Failed to unload modules: " + " ".join(args))

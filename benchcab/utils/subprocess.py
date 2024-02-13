@@ -60,6 +60,7 @@ class SubprocessWrapper(SubprocessWrapperInterface):
         -------
         subprocess.CompletedProcess
             _description_
+
         """
         # Use the logging level (10 = Debug) to determine verbosity.
         verbose = get_logger().getEffectiveLevel() == DEBUG_LEVEL

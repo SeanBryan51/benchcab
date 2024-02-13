@@ -5,14 +5,14 @@
 
 """Top-level utilities."""
 import json
+import logging
 import os
 import pkgutil
+import sys
 from importlib import resources
 from pathlib import Path
 
 import yaml
-import logging
-import sys
 
 # List of one-argument decoding functions.
 PACKAGE_DATA_DECODERS = dict(json=json.loads, yml=yaml.safe_load)
@@ -25,6 +25,7 @@ def get_installed_root() -> Path:
     -------
     Path
         Path to the installed root.
+
     """
     return Path(resources.files("benchcab"))
 
@@ -36,6 +37,7 @@ def load_package_data(filename: str) -> dict:
     ----------
     filename : str
         Filename of the file to load out of the data directory.
+
     """
     # Work out the encoding of requested file.
     ext = filename.split(".")[-1]
