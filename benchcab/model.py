@@ -38,7 +38,7 @@ class Model:
         Parameters
         ----------
         repo : Repo
-            Respository.
+            Repository.
         name : Optional[str], optional
             Name, by default None
         patch : Optional[dict], optional

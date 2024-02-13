@@ -124,7 +124,7 @@ class Task:
         model : Model
             Model.
         met_forcing_file : str
-            Met forcinf file.
+            Met forcing file.
         sci_conf_id : int
             Science configuration ID.
         sci_config : dict

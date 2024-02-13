@@ -11,8 +11,6 @@ from importlib import resources
 from pathlib import Path
 
 import yaml
-
-# from benchcab.utils.singleton_logger import SingletonLogger
 import logging
 import sys
 

@@ -169,6 +169,7 @@ class Benchcab:
                 project=config["project"],
                 config_path=config_path,
                 modules=config["modules"],
+                pbs_config=config["fluxsite"]["pbs"],
                 skip_bitwise_cmp="fluxsite-bitwise-cmp" in skip,
                 benchcab_path=str(self.benchcab_exe_path),
             )
@@ -201,17 +202,10 @@ class Benchcab:
 
         self.logger.info("Checking out repositories...")
         rev_number_log = ""
+
         for model in self._get_models(config):
             model.repo.checkout()
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
-
-        # TODO(Sean) we should archive revision numbers for CABLE-AUX
-        cable_aux_repo = SVNRepo(
-            svn_root=internal.CABLE_SVN_ROOT,
-            branch_path=internal.CABLE_AUX_RELATIVE_SVN_PATH,
-            path=internal.SRC_DIR / "CABLE-AUX",
-        )
-        cable_aux_repo.checkout(verbose=verbose)
 
         rev_number_log_path = next_path("rev_number-*.log")
         self.logger.info(f"Writing revision number info to {rev_number_log_path}")
@@ -259,7 +253,7 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        print("Running fluxsite tasks...")
+        self.logger.debug("Running fluxsite tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
@@ -286,7 +280,7 @@ class Benchcab:
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         comparisons = get_fluxsite_comparisons(tasks)
 
-        print("Running comparison tasks...")
+        self.logger.debug("Running comparison tasks...")
         try:
             multiprocess = config["fluxsite"]["multiprocess"]
         except KeyError:
