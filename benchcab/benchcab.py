@@ -281,19 +281,12 @@ class Benchcab:
         comparisons = get_fluxsite_comparisons(tasks)
 
         self.logger.debug("Running comparison tasks...")
-        try:
-            multiprocess = config["fluxsite"]["multiprocess"]
-        except KeyError:
-            multiprocess = internal.FLUXSITE_DEFAULT_MULTIPROCESS
-        if multiprocess:
-            try:
-                ncpus = config["fluxsite"]["pbs"]["ncpus"]
-            except KeyError:
-                ncpus = internal.FLUXSITE_DEFAULT_PBS["ncpus"]
+        if config["fluxsite"]["multiprocess"]:
+            ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_comparisons_in_parallel(comparisons, n_processes=ncpus)
         else:
             run_comparisons(comparisons)
-        self.logger.info("Successfully ran comparison tasks")
+        self.logger.debug("Successfully ran comparison tasks")
 
     def fluxsite(self, config_path: str, no_submit: bool, skip: list[str]):
         """Endpoint for `benchcab fluxsite`."""
