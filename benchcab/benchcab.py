@@ -61,6 +61,12 @@ class Benchcab:
 
         # Get the logger object
         self.logger = get_logger()
+        self._set_environment()
+
+    def _set_environment(self):
+        """Sets environment variables on current user environment."""
+        # Prioritize system binaries over externally set $PATHs (#220)
+        os.environ["PATH"] = f"{':'.join(internal.SYSTEM_PATHS)}:{os.environ['PATH']}"
 
     def _validate_environment(self, project: str, modules: list):
         """Performs checks on current user environment."""
@@ -98,6 +104,14 @@ class Benchcab:
             if not self.modules_handler.module_is_avail(modname):
                 self.logger.error(f"Module ({modname}) is not available.")
                 sys.exit(1)
+
+        system_paths = os.getenv("PATH").split(":")[: len(internal.SYSTEM_PATHS)]
+        if set(system_paths) != set(internal.SYSTEM_PATHS):
+            msg = f"""Error: System paths are not prioritized over user-defined paths
+                    Currently set as: {system_paths}
+                    The required system paths are: {internal.SYSTEM_PATHS}
+            """
+            raise EnvironmentError(msg)
 
         all_site_ids = set(
             internal.MEORG_EXPERIMENTS["five-site-test"]
