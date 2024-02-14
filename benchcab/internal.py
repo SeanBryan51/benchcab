@@ -28,6 +28,9 @@ FLUXSITE_DEFAULT_MULTIPROCESS = True
 # Path to the user's current working directory
 CWD = Path.cwd()
 
+# Default system paths in Unix
+SYSTEM_PATHS = ["/bin", "/usr/bin", "/usr/local/bin"]
+
 # Path to the user's home directory
 HOME_DIR = Path(os.environ["HOME"])
 
