@@ -267,15 +267,9 @@ class Benchcab:
         self._validate_environment(project=config["project"], modules=config["modules"])
 
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
-        self.logger.debug("Running fluxsite tasks...")
-        try:
-            multiprocess = config["fluxsite"]["multiprocess"]
-        except KeyError:
-            multiprocess = internal.FLUXSITE_DEFAULT_MULTIPROCESS
-        if multiprocess:
-            ncpus = config.get("pbs", {}).get(
-                "ncpus", internal.FLUXSITE_DEFAULT_PBS["ncpus"]
-            )
+        self.logger.info("Running fluxsite tasks...")
+        if config["fluxsite"]["multiprocess"]:
+            ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_tasks_in_parallel(tasks, n_processes=ncpus)
         else:
             run_tasks(tasks)
@@ -294,13 +288,13 @@ class Benchcab:
         tasks = self.tasks if self.tasks else self._initialise_tasks(config)
         comparisons = get_fluxsite_comparisons(tasks)
 
-        self.logger.debug("Running comparison tasks...")
+        self.logger.info("Running comparison tasks...")
         if config["fluxsite"]["multiprocess"]:
             ncpus = config["fluxsite"]["pbs"]["ncpus"]
             run_comparisons_in_parallel(comparisons, n_processes=ncpus)
         else:
             run_comparisons(comparisons)
-        self.logger.debug("Successfully ran comparison tasks")
+        self.logger.info("Successfully ran comparison tasks")
 
     def fluxsite(self, config_path: str, no_submit: bool, skip: list[str]):
         """Endpoint for `benchcab fluxsite`."""
