@@ -18,13 +18,7 @@ def clean_directory_tree():
         shutil.rmtree(internal.RUN_DIR)
 
 
-def setup_fluxsite_directory_tree(verbose=False):
-    """Generate the directory structure used by `benchcab`.
-
-    Parameters
-    ----------
-    verbose : bool, default False
-        Additional level of logging if True
-    """
+def setup_fluxsite_directory_tree():
+    """Generate the directory structure used by `benchcab`."""
     for path in internal.FLUXSITE_DIRS.values():
-        mkdir(path, verbose=verbose, parents=True, exist_ok=True)
+        mkdir(path, parents=True, exist_ok=True)

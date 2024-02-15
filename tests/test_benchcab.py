@@ -1,4 +1,5 @@
 """`pytest` tests for `benchcab.py`."""
+
 import re
 from contextlib import nullcontext as does_not_raise
 from unittest import mock

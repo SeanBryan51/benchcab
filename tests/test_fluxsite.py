@@ -27,13 +27,13 @@ from benchcab.utils.repo import Repo
 
 
 @pytest.fixture()
-def mock_repo():
+def mock_repo():  # noqa: D103
     class MockRepo(Repo):
         def __init__(self) -> None:
             self.branch = "test-branch"
             self.revision = "1234"
 
-        def checkout(self, verbose=False):
+        def checkout(self):
             pass
 
         def get_branch_name(self) -> str:
