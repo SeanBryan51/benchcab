@@ -7,6 +7,7 @@ pytest autouse fixture.
 
 import contextlib
 import io
+import logging
 from pathlib import Path
 
 import f90nml
@@ -16,6 +17,7 @@ import yaml
 from benchcab import internal
 from benchcab.model import Model
 from benchcab.spatial import SpatialTask, get_spatial_tasks
+from benchcab.utils import get_logger
 from benchcab.utils.repo import Repo
 
 
@@ -26,7 +28,7 @@ def mock_repo():
             self.branch = "test-branch"
             self.revision = "1234"
 
-        def checkout(self, verbose=False):
+        def checkout(self):
             pass
 
         def get_branch_name(self) -> str:
@@ -99,19 +101,20 @@ class TestConfigureExperiment:
     @pytest.mark.parametrize(
         ("verbosity", "expected"),
         [
-            (False, ""),
+            (logging.INFO, ""),
             (
-                True,
+                logging.DEBUG,
                 "  Updating experiment config parameters in "
-                "runs/spatial/tasks/crujra_access_R1_S0/config.yaml\n",
+                "runs/spatial/tasks/crujra_access_R1_S0/config.yaml",
             ),
         ],
     )
-    def test_standard_output(self, task, verbosity, expected):
+    def test_standard_output(self, task, verbosity, expected, caplog):
         """Success case: test standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            task.configure_experiment(verbose=verbosity)
-        assert buf.getvalue() == expected
+        caplog.set_level(verbosity)
+        task.configure_experiment()
+        output = "\n".join(caplog.messages) if caplog.messages else ""
+        assert output == expected
 
 
 class TestUpdateNamelist:
@@ -138,21 +141,22 @@ class TestUpdateNamelist:
     @pytest.mark.parametrize(
         ("verbosity", "expected"),
         [
-            (False, ""),
+            (logging.INFO, ""),
             (
-                True,
+                logging.DEBUG,
                 "  Adding science configurations to CABLE namelist file "
                 "runs/spatial/tasks/crujra_access_R1_S0/cable.nml\n"
                 "  Adding branch specific configurations to CABLE namelist file "
-                "runs/spatial/tasks/crujra_access_R1_S0/cable.nml\n",
+                "runs/spatial/tasks/crujra_access_R1_S0/cable.nml",
             ),
         ],
     )
-    def test_standard_output(self, task, verbosity, expected):
+    def test_standard_output(self, task, verbosity, expected, caplog):
         """Success case: test standard output."""
-        with contextlib.redirect_stdout(io.StringIO()) as buf:
-            task.update_namelist(verbose=verbosity)
-        assert buf.getvalue() == expected
+        caplog.set_level(verbosity)
+        task.update_namelist()
+        output = "\n".join(caplog.messages) if caplog.messages else ""
+        assert output == expected
 
 
 class TestRun:

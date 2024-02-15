@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """A module containing all *_config() functions."""
+import os
 from pathlib import Path
 
 import yaml
@@ -21,6 +22,7 @@ class ConfigValidationError(Exception):
         ----------
         validator: cerberus.Validator
             A validation object that has been used and has the errors attribute.
+
         """
         # Nicely format the errors.
         errors = [f"{k} = {v}" for k, v in validator.errors.items()]
@@ -48,8 +50,9 @@ def validate_config(config: dict) -> bool:
 
     Raises
     ------
-    ConfigValidationException
+    ConfigValidationError
         Raised when the configuration file fails validation.
+
     """
     # Load the schema
     schema = bu.load_package_data("config-schema.yml")
@@ -80,7 +83,11 @@ def read_optional_key(config: dict):
     ----------
     config : dict
         The configuration file with with/without optional keys
+
     """
+    if "project" not in config:
+        config["project"] = os.environ.get("PROJECT", None)
+
     if "realisations" in config:
         for r in config["realisations"]:
             r["name"] = r.get("name")
@@ -97,6 +104,7 @@ def read_optional_key(config: dict):
     )
 
     config["spatial"]["payu"] = config["spatial"].get("payu", {})
+    config["spatial"]["payu"]["config"] = config["spatial"]["payu"].get("config", {})
     config["spatial"]["payu"]["args"] = config["spatial"]["payu"].get("args")
 
     # Default values for fluxsite
@@ -125,6 +133,7 @@ def read_config_file(config_path: str) -> dict:
     -------
     dict
         Configuration dict
+
     """
     # Load the configuration file.
     with Path.open(Path(config_path), "r", encoding="utf-8") as file:
@@ -150,6 +159,7 @@ def read_config(config_path: str) -> dict:
     ------
     ConfigValidationError
         Raised when the configuration file fails validation.
+
     """
     # Read configuration file
     config = read_config_file(config_path)

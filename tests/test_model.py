@@ -25,7 +25,7 @@ def mock_repo():
         def __init__(self) -> None:
             self.handle = "trunk"
 
-        def checkout(self, path: Path, verbose=False):
+        def checkout(self, path: Path):
             pass
 
         def get_branch_name(self) -> str:

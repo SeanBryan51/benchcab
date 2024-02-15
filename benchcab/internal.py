@@ -10,7 +10,7 @@ from benchcab.utils.pbs import PBSConfig
 
 _, NODENAME, _, _, _ = os.uname()
 
-CONFIG_REQUIRED_KEYS = ["realisations", "project", "modules", "experiment"]
+CONFIG_REQUIRED_KEYS = ["realisations", "modules"]
 
 # Parameters for job script:
 QSUB_FNAME = "benchmark_cable_qsub.sh"
@@ -26,6 +26,9 @@ FLUXSITE_DEFAULT_MULTIPROCESS = True
 
 # Path to the user's current working directory
 CWD = Path.cwd()
+
+# Default system paths in Unix
+SYSTEM_PATHS = ["/bin", "/usr/bin", "/usr/local/bin"]
 
 # Path to the user's home directory
 HOME_DIR = Path(os.environ["HOME"])

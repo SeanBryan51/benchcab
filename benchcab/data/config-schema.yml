@@ -1,5 +1,6 @@
 project:
   type: "string"
+  required: false
 
 modules:
   type: "list"

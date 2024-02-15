@@ -10,6 +10,7 @@ import yaml
 
 from benchcab import internal
 from benchcab.model import Model
+from benchcab.utils import get_logger
 from benchcab.utils.dict import deep_update
 from benchcab.utils.fs import chdir
 from benchcab.utils.namelist import patch_namelist, patch_remove_namelist
@@ -36,30 +37,28 @@ class SpatialTask:
         self.sci_conf_id = sci_conf_id
         self.sci_config = sci_config
         self.payu_args = payu_args
+        self.logger = get_logger()
 
     def get_task_name(self) -> str:
         """Returns the file name convention used for this task."""
         return f"{self.met_forcing_name}_R{self.model.model_id}_S{self.sci_conf_id}"
 
-    def setup_task(self, payu_config: Optional[dict] = None, verbose=False):
+    def setup_task(self, payu_config: Optional[dict] = None):
         """Does all file manipulations to run cable with payu for this task."""
+        self.logger.debug(f"Setting up task: {self.get_task_name()}")
 
-        if verbose:
-            print(f"Setting up task: {self.get_task_name()}")
+        self.clone_experiment()
+        self.configure_experiment(payu_config)
+        self.update_namelist()
 
-        self.clone_experiment(verbose=verbose)
-        self.configure_experiment(payu_config, verbose=verbose)
-        self.update_namelist(verbose=verbose)
-
-    def clone_experiment(self, verbose=False):
+    def clone_experiment(self):
         """Clone the payu experiment from GitHub."""
         url = self.met_forcing_payu_experiment
         path = internal.SPATIAL_TASKS_DIR / self.get_task_name()
-        if verbose:
-            print(f"git clone {url} {path}")
+        self.logger.debug(f"git clone {url} {path}")
         _ = git.Repo.clone_from(url, path)
 
-    def configure_experiment(self, payu_config: Optional[dict] = None, verbose=False):
+    def configure_experiment(self, payu_config: Optional[dict] = None):
         """Configure the payu experiment for this task."""
         task_dir = internal.SPATIAL_TASKS_DIR / self.get_task_name()
         exp_config_path = task_dir / "config.yaml"
@@ -68,11 +67,9 @@ class SpatialTask:
             if config is None:
                 config = {}
 
-        if verbose:
-            print(
-                "  Updating experiment config parameters in",
-                task_dir / "config.yaml",
-            )
+        self.logger.debug(
+            f"  Updating experiment config parameters in {task_dir / 'config.yaml'}" ""
+        )
 
         if payu_config:
             config = deep_update(config, payu_config)
@@ -88,45 +85,41 @@ class SpatialTask:
         with exp_config_path.open("w", encoding="utf-8") as file:
             yaml.dump(config, file)
 
-    def update_namelist(self, verbose=False):
+    def update_namelist(self):
         """Update the namelist file for this task."""
         nml_path = (
             internal.SPATIAL_TASKS_DIR / self.get_task_name() / internal.CABLE_NML
         )
-        if verbose:
-            print(f"  Adding science configurations to CABLE namelist file {nml_path}")
+        self.logger.debug(
+            f"  Adding science configurations to CABLE namelist file {nml_path}"
+        )
         patch_namelist(nml_path, self.sci_config)
 
         if self.model.patch:
-            if verbose:
-                print(
-                    f"  Adding branch specific configurations to CABLE namelist file {nml_path}"
-                )
+            self.logger.debug(
+                f"  Adding branch specific configurations to CABLE namelist file {nml_path}"
+            )
             patch_namelist(nml_path, self.model.patch)
 
         if self.model.patch_remove:
-            if verbose:
-                print(
-                    f"  Removing branch specific configurations from CABLE namelist file {nml_path}"
-                )
+            self.logger.debug(
+                f"  Removing branch specific configurations from CABLE namelist file {nml_path}"
+            )
             patch_remove_namelist(nml_path, self.model.patch_remove)
 
-    def run(self, verbose=False) -> None:
+    def run(self) -> None:
         """Runs a single spatial task."""
-
         task_dir = internal.SPATIAL_TASKS_DIR / self.get_task_name()
         with chdir(task_dir):
             self.subprocess_handler.run_cmd(
                 f"payu run {self.payu_args}" if self.payu_args else "payu run",
-                verbose=verbose,
             )
 
 
-def run_tasks(tasks: list[SpatialTask], verbose=False):
+def run_tasks(tasks: list[SpatialTask]):
     """Runs tasks in `tasks` sequentially."""
-
     for task in tasks:
-        task.run(verbose=verbose)
+        task.run()
 
 
 def get_spatial_tasks(
