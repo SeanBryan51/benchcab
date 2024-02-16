@@ -47,26 +47,3 @@ def render_job_script(
     )
 
     return interpolate_file_template("pbs_jobscript.j2", **context)
-
-
-#     return f"""#!/bin/bash
-# #PBS -l wd
-# #PBS -l ncpus={pbs_config["ncpus"]}
-# #PBS -l mem={pbs_config["mem"]}
-# #PBS -l walltime={pbs_config["walltime"]}
-# #PBS -q normal
-# #PBS -P {project}
-# #PBS -j oe
-# #PBS -m e
-# #PBS -l storage={'+'.join(storage_flags)}
-
-# module purge
-# {module_load_lines}
-
-# set -ev
-
-# {benchcab_path} fluxsite-run-tasks --config={config_path} {verbose_flag}
-# {'' if skip_bitwise_cmp else f'''
-# {benchcab_path} fluxsite-bitwise-cmp --config={config_path} {verbose_flag}
-# ''' }
-# """
