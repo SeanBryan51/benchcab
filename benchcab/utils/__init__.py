@@ -12,14 +12,10 @@ import sys
 from importlib import resources
 from pathlib import Path
 from jinja2 import Environment, BaseLoader
-
 import yaml
 
 # List of one-argument decoding functions.
-PACKAGE_DATA_DECODERS = dict(
-    json=json.loads,
-    yml=yaml.safe_load
-)
+PACKAGE_DATA_DECODERS = dict(json=json.loads, yml=yaml.safe_load)
 
 
 def get_installed_root() -> Path:
@@ -67,11 +63,14 @@ def interpolate_string_template(template, **kwargs):
     ----------
     template : str
         Template string to interpolate over.
+    **kwargs :
+        Keyword arguments to interpolate into the string.
 
     Returns
     -------
     str
         Interpolated string.
+
     """
     _template = Environment(loader=BaseLoader()).from_string(template)
     return _template.render(**kwargs)
@@ -84,11 +83,14 @@ def interpolate_file_template(template_file, **kwargs):
     ----------
     template_file : str
         Filepath slug in the benchcab data directory.
+    **kwargs :
+        Keyword arguments to interpolate into the file.
 
     Returns
     -------
     str
         Interpolated template string.
+
     """
     template = load_package_data(template_file)
     return interpolate_string_template(template, **kwargs)

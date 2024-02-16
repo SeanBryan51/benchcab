@@ -16,7 +16,7 @@ class TestRenderJobScript:
             modules=["foo", "bar", "baz"],
             pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             benchcab_path="/absolute/path/to/benchcab",
-        ) == load_package_data('test/pbs_jobscript_default.sh')
+        ) == load_package_data("test/pbs_jobscript_default.sh")
 
     def test_verbose_flag_added_to_command_line_arguments(self):
         """Success case: test verbose flag is added to command line arguments."""
@@ -27,7 +27,7 @@ class TestRenderJobScript:
             pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             verbose=True,
             benchcab_path="/absolute/path/to/benchcab",
-        ) == load_package_data('test/pbs_jobscript_verbose.sh')
+        ) == load_package_data("test/pbs_jobscript_verbose.sh")
 
     def test_skip_bitwise_comparison_step(self):
         """Success case: skip fluxsite-bitwise-cmp step."""
@@ -38,4 +38,4 @@ class TestRenderJobScript:
             pbs_config=internal.FLUXSITE_DEFAULT_PBS,
             skip_bitwise_cmp=True,
             benchcab_path="/absolute/path/to/benchcab",
-        ) == load_package_data('test/pbs_jobscript_skip_bitwise.sh')
+        ) == load_package_data("test/pbs_jobscript_skip_bitwise.sh")

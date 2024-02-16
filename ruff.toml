@@ -6,4 +6,5 @@ ignore = [
     "D104",  # D104 Missing docstring in public package
     "PLR0913", # PLR0913 Too many arguments in function definition
     "D100", # D100 Missing docstring in public module
+    "I001", # Import block is un-sorted or un-formatted
 ]
