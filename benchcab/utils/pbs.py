@@ -4,6 +4,7 @@
 """Contains helper functions for manipulating PBS job scripts."""
 
 from typing import TypedDict
+
 from benchcab.utils import interpolate_file_template
 
 

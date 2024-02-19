@@ -11,8 +11,9 @@ import pkgutil
 import sys
 from importlib import resources
 from pathlib import Path
-from jinja2 import Environment, BaseLoader
+
 import yaml
+from jinja2 import BaseLoader, Environment
 
 # List of one-argument decoding functions.
 PACKAGE_DATA_DECODERS = dict(json=json.loads, yml=yaml.safe_load)
