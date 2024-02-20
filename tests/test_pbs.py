@@ -1,8 +1,8 @@
 """`pytest` tests for `utils/pbs.py`."""
 
 from benchcab import internal
-from benchcab.utils.pbs import render_job_script
 from benchcab.utils import load_package_data
+from benchcab.utils.pbs import render_job_script
 
 
 class TestRenderJobScript:

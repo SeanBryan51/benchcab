@@ -11,6 +11,7 @@ import pkgutil
 import sys
 from importlib import resources
 from pathlib import Path
+from typing import Union
 
 import yaml
 from jinja2 import BaseLoader, Environment
@@ -31,13 +32,18 @@ def get_installed_root() -> Path:
     return Path(resources.files("benchcab"))
 
 
-def load_package_data(filename: str) -> dict:
+def load_package_data(filename: str) -> Union[str, dict]:
     """Load data out of the installed package data directory.
 
     Parameters
     ----------
     filename : str
         Filename of the file to load out of the data directory.
+
+    Returns
+    -------
+    str or dict
+        String or dictionary, depending on format of data read.
 
     """
     # Work out the encoding of requested file.
