@@ -19,7 +19,31 @@ def test_load_package_data_pass():
 def test_load_package_data_fail():
     """Test load_package_data() fails as expected."""
     with pytest.raises(FileNotFoundError):
-        bu.load_package_data("config-missing.yml")
+        _ = bu.load_package_data("config-missing.yml")
+
+
+def test_interpolate_string_template_pass():
+    """Test interpolate_string_template() passes as expected."""
+    result = bu.interpolate_string_template("I should {{status}}", status="pass")
+    assert result == "I should pass"
+
+
+def test_interpolate_string_template_fail():
+    """Test interpolate_string_template() fails as expected."""
+    result = bu.interpolate_string_template("I should {{status}}", status="fail")
+    assert result != "I should not pass"
+
+
+def test_interpolate_file_template_pass():
+    """Test interpolate_file_template() passes as expected."""
+    result = bu.interpolate_file_template("test/template.j2", myarg="PASS")
+    assert result == "This is a template. PASS"
+
+
+def test_interpolate_file_template_fail():
+    """Test interpolate_file_template() fails as expected."""
+    result = bu.interpolate_file_template("test/template.j2", notmyarg="PASS")
+    assert result != "This is a template. PASS"
 
 
 def test_get_logger_singleton_pass():

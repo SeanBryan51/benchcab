@@ -44,7 +44,7 @@ def deep_update(mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, A
     -------
     Dict[KeyType, Any]
         Updated mapping.
-    
+
     """
     updated_mapping = mapping.copy()
     for updating_mapping in updating_mappings:

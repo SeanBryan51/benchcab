@@ -5,6 +5,8 @@
 
 from typing import TypedDict
 
+from benchcab.utils import interpolate_file_template
+
 
 class PBSConfig(TypedDict):
     """Default parameters for PBS runs via benchcab."""
@@ -29,29 +31,20 @@ def render_job_script(
     This includes things such as running CABLE and running bitwise comparison jobs
     between model output files.
     """
-    module_load_lines = "\n".join(
-        f"module load {module_name}" for module_name in modules
-    )
-    verbose_flag = "-v" if verbose else ""
+    verbose_flag = " -v" if verbose else ""
     storage_flags = ["gdata/ks32", "gdata/hh5", "gdata/wd9", *pbs_config["storage"]]
-    return f"""#!/bin/bash
-#PBS -l wd
-#PBS -l ncpus={pbs_config["ncpus"]}
-#PBS -l mem={pbs_config["mem"]}
-#PBS -l walltime={pbs_config["walltime"]}
-#PBS -q normal
-#PBS -P {project}
-#PBS -j oe
-#PBS -m e
-#PBS -l storage={'+'.join(storage_flags)}
 
-module purge
-{module_load_lines}
+    context = dict(
+        modules=modules,
+        verbose_flag=verbose_flag,
+        ncpus=pbs_config["ncpus"],
+        mem=pbs_config["mem"],
+        walltime=pbs_config["walltime"],
+        project=project,
+        storage="+".join(storage_flags),
+        benchcab_path=benchcab_path,
+        config_path=config_path,
+        skip_bitwise_cmp=skip_bitwise_cmp,
+    )
 
-set -ev
-
-{benchcab_path} fluxsite-run-tasks --config={config_path} {verbose_flag}
-{'' if skip_bitwise_cmp else f'''
-{benchcab_path} fluxsite-bitwise-cmp --config={config_path} {verbose_flag}
-''' }
-"""
+    return interpolate_file_template("pbs_jobscript.j2", **context)
