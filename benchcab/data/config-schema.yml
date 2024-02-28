@@ -24,7 +24,7 @@ realisations:
         schema:
           git:
             type: "dict"
-            excludes: "svn"
+            excludes: ["svn", "local"]
             schema:
               branch:
                 type: "string"
@@ -37,13 +37,20 @@ realisations:
                 required: false
           svn:
             type: "dict"
-            excludes: "git"
+            excludes: ["git", "local"]
             schema:
               branch_path:
                 type: "string"
                 required: true
               revision:
                 type: "integer"
+          local:
+            type: "dict"
+            excludes: ["git", "svn"]
+            schema:
+              local_path:
+                type: "string"
+                required: true
       name:
         nullable: true
         type: "string"

@@ -199,4 +199,15 @@ def generate_parser(app: Benchcab) -> argparse.ArgumentParser:
     )
     parser_spatial.set_defaults(func=app.spatial)
 
+    # subcommand: 'benchcab clean'
+    parser_spatial = subparsers.add_parser(
+        "clean",
+        parents=[args_help, args_subcommand],
+        help="Cleanup files created by running benchcab.",
+        description="""Removes src/ and runs/ directories, along with log files in the 
+        project root directory.""",
+        add_help=False,
+    )
+    parser_spatial.set_defaults(func=app.clean)
+
     return main_parser

@@ -46,6 +46,49 @@ class Repo(AbstractBaseClass):
         """
 
 
+class LocalRepo(Repo):
+    """Concrete implementation of the `Repo` class using local path backend."""
+
+    def __init__(self, local_path: str, path: str) -> None:
+        """Return a LocalRepo instance.
+
+        Parameters
+        ----------
+        path : str
+            Path of local CABLE branch
+        """        
+        self.name = Path(local_path).name
+        self.local_path = local_path
+        self.path = path / self.name if path.is_dir() else path
+        self.logger = get_logger()
+
+    def checkout(self):
+        """Checkout the source code."""
+        self.path.symlink_to(self.local_path)
+        self.logger.info(f"Created symlink from to {self.path} named {self.name}")
+
+    def get_revision(self) -> str:
+        """Return the latest revision of the source code.
+
+        Returns
+        -------
+        str
+            Human readable string describing the latest revision.
+
+        """
+        return f"Using local CABLE branch: {self.name}"
+
+    def get_branch_name(self) -> str:
+        """Return the branch name of the source code.
+
+        Returns
+        -------
+        str
+            Branch name of the source code.
+
+        """
+        return Path(self.path).absolute()
+
 class GitRepo(Repo):
     """A concrete implementation of the `Repo` class using a Git backend.
 
@@ -236,4 +279,6 @@ def create_repo(spec: dict, path: Path) -> Repo:
         return GitRepo(path=path, **spec["git"])
     if "svn" in spec:
         return SVNRepo(svn_root=internal.CABLE_SVN_ROOT, path=path, **spec["svn"])
+    if "local" in spec:
+        return LocalRepo(path=path, **spec["local"])
     raise RepoSpecError

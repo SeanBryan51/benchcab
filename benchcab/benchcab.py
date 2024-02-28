@@ -28,7 +28,11 @@ from benchcab.utils.fs import mkdir, next_path
 from benchcab.utils.pbs import render_job_script
 from benchcab.utils.repo import create_repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-from benchcab.workdir import setup_fluxsite_directory_tree
+from benchcab.workdir import (
+    clean_realisation_files,
+    clean_submission_files,
+    setup_fluxsite_directory_tree,
+)
 
 
 class Benchcab:
@@ -307,6 +311,11 @@ class Benchcab:
                 self.fluxsite_bitwise_cmp(config_path)
         else:
             self.fluxsite_submit_job(config_path, skip)
+
+    def clean(self, config_path: str):
+        """Endpoint for cleaning runs uirectory ig."""
+        clean_realisation_files()
+        clean_submission_files()
 
     def spatial(self, config_path: str):
         """Endpoint for `benchcab spatial`."""

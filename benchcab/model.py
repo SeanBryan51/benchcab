@@ -14,7 +14,7 @@ from benchcab import internal
 from benchcab.environment_modules import EnvironmentModules, EnvironmentModulesInterface
 from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, copy2, rename
-from benchcab.utils.repo import GitRepo, Repo
+from benchcab.utils.repo import GitRepo, LocalRepo, Repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 
 
@@ -62,7 +62,7 @@ class Model:
         # TODO(Sean) we should not have to know whether `repo` is a `GitRepo` or
         # `SVNRepo`, we should only be working with the `Repo` interface.
         # See issue https://github.com/CABLE-LSM/benchcab/issues/210
-        if isinstance(repo, GitRepo):
+        if isinstance(repo, (GitRepo, LocalRepo)):
             self.src_dir = Path("src")
 
     @property
