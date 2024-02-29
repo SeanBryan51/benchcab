@@ -11,6 +11,7 @@ import pytest
 import benchcab.config as bc
 import benchcab.internal as bi
 import benchcab.utils as bu
+from benchcab import internal
 
 NO_OPTIONAL_CONFIG_PROJECT = "hh5"
 OPTIONAL_CONFIG_PROJECT = "ks32"
@@ -76,6 +77,10 @@ def all_optional_default_config(no_optional_config) -> dict:
             "pbs": bi.FLUXSITE_DEFAULT_PBS,
         },
         "science_configurations": bi.DEFAULT_SCIENCE_CONFIGURATIONS,
+        "spatial": {
+            "payu": {"config": {}, "args": None},
+            "met_forcings": internal.SPATIAL_DEFAULT_MET_FORCINGS,
+        },
     }
     for c_r in config["realisations"]:
         c_r["name"] = None
@@ -108,6 +113,12 @@ def all_optional_custom_config(no_optional_config) -> dict:
                 }
             }
         ],
+        "spatial": {
+            "payu": {"config": {"walltime": "1:00:00"}, "args": "-n 2"},
+            "met_forcings": {
+                "crujra_access": "https://github.com/CABLE-LSM/cable_example.git"
+            },
+        },
     }
     branch_names = ["svn_trunk", "git_branch"]
 

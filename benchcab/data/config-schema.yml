@@ -97,4 +97,27 @@ fluxsite:
           schema:
             type: "string"
             required: false
-            
+
+spatial:
+  type: "dict"
+  required: false
+  schema:
+    met_forcings:
+      type: "dict"
+      required: false
+      minlength: 1
+      keysrules:
+        type: "string"
+      valuesrules:
+        type: "string"
+    payu:
+      type: "dict"
+      required: false
+      schema:
+        config:
+          type: "dict"
+          required: false
+        args:
+          nullable: true
+          type: "string"
+          required: false

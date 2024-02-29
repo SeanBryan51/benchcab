@@ -7,9 +7,7 @@ import multiprocessing
 import operator
 import shutil
 import sys
-from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Dict, TypeVar
 
 import f90nml
 import flatdict
@@ -20,84 +18,8 @@ from benchcab.comparison import ComparisonTask
 from benchcab.model import Model
 from benchcab.utils import get_logger
 from benchcab.utils.fs import chdir, mkdir
+from benchcab.utils.namelist import patch_namelist, patch_remove_namelist
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
-
-# fmt: off
-# ======================================================
-# Copyright (c) 2017 - 2022 Samuel Colvin and other contributors
-# from https://github.com/pydantic/pydantic/blob/fd2991fe6a73819b48c906e3c3274e8e47d0f761/pydantic/utils.py#L200
-
-KeyType = TypeVar('KeyType')
-
-
-def deep_update(mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]) -> Dict[KeyType, Any]:
-    """Perform a deep update of a mapping.
-
-    Parameters
-    ----------
-    mapping : Dict[KeyType, Any]
-        Mapping.
-    *updating_mappings : Dict[KeyType, Any]
-        Mapping updates.
-
-    Returns
-    -------
-    Dict[KeyType, Any]
-        Updated mapping.
-
-    """
-    updated_mapping = mapping.copy()
-    for updating_mapping in updating_mappings:
-        for k, v in updating_mapping.items():
-            if k in updated_mapping and isinstance(updated_mapping[k], dict) and isinstance(v, dict):
-                updated_mapping[k] = deep_update(updated_mapping[k], v)
-            else:
-                updated_mapping[k] = v
-    return updated_mapping
-
-# ======================================================
-# fmt: on
-
-
-def deep_del(
-    mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]
-) -> Dict[KeyType, Any]:
-    """Deletes all key-value 'leaf nodes' in `mapping` specified by `updating_mappings`."""
-    updated_mapping = mapping.copy()
-    for updating_mapping in updating_mappings:
-        for key, value in updating_mapping.items():
-            if isinstance(updated_mapping[key], dict) and isinstance(value, dict):
-                updated_mapping[key] = deep_del(updated_mapping[key], value)
-            else:
-                del updated_mapping[key]
-    return updated_mapping
-
-
-def patch_namelist(nml_path: Path, patch: dict):
-    """Writes a namelist patch specified by `patch` to `nml_path`.
-
-    The `patch` dictionary must comply with the `f90nml` api.
-    """
-    if not nml_path.exists():
-        f90nml.write(patch, nml_path)
-        return
-
-    nml = f90nml.read(nml_path)
-    f90nml.write(deep_update(nml, patch), nml_path, force=True)
-
-
-def patch_remove_namelist(nml_path: Path, patch_remove: dict):
-    """Removes a subset of namelist parameters specified by `patch_remove` from `nml_path`.
-
-    The `patch_remove` dictionary must comply with the `f90nml` api.
-    """
-    nml = f90nml.read(nml_path)
-    try:
-        f90nml.write(deep_del(nml, patch_remove), nml_path, force=True)
-    except KeyError as exc:
-        msg = f"Namelist parameters specified in `patch_remove` do not exist in {nml_path.name}."
-        raise KeyError(msg) from exc
-
 
 f90_logical_repr = {True: ".true.", False: ".false."}
 
@@ -106,7 +28,7 @@ class CableError(Exception):
     """Custom exception class for CABLE errors."""
 
 
-class Task:
+class FluxsiteTask:
     """A class used to represent a single fluxsite task."""
 
     subprocess_handler: SubprocessWrapperInterface = SubprocessWrapper()
@@ -353,10 +275,10 @@ def get_fluxsite_tasks(
     models: list[Model],
     science_configurations: list[dict],
     fluxsite_forcing_file_names: list[str],
-) -> list[Task]:
+) -> list[FluxsiteTask]:
     """Returns a list of fluxsite tasks to run."""
     tasks = [
-        Task(
+        FluxsiteTask(
             model=model,
             met_forcing_file=file_name,
             sci_conf_id=sci_conf_id,
@@ -369,14 +291,15 @@ def get_fluxsite_tasks(
     return tasks
 
 
-def run_tasks(tasks: list[Task]):
+def run_tasks(tasks: list[FluxsiteTask]):
     """Runs tasks in `tasks` serially."""
     for task in tasks:
         task.run()
 
 
 def run_tasks_in_parallel(
-    tasks: list[Task], n_processes=internal.FLUXSITE_DEFAULT_PBS["ncpus"]
+    tasks: list[FluxsiteTask],
+    n_processes=internal.FLUXSITE_DEFAULT_PBS["ncpus"],
 ):
     """Runs tasks in `tasks` in parallel across multiple processes."""
     run_task = operator.methodcaller("run")
@@ -384,7 +307,7 @@ def run_tasks_in_parallel(
         pool.map(run_task, tasks, chunksize=1)
 
 
-def get_fluxsite_comparisons(tasks: list[Task]) -> list[ComparisonTask]:
+def get_fluxsite_comparisons(tasks: list[FluxsiteTask]) -> list[ComparisonTask]:
     """Returns a list of `ComparisonTask` objects to run comparisons with.
 
     Pairs should be matching in science configurations and meteorological

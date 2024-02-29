@@ -96,6 +96,18 @@ def read_optional_key(config: dict):
         "science_configurations", internal.DEFAULT_SCIENCE_CONFIGURATIONS
     )
 
+    # Default values for spatial
+    config["spatial"] = config.get("spatial", {})
+
+    config["spatial"]["met_forcings"] = config["spatial"].get(
+        "met_forcings", internal.SPATIAL_DEFAULT_MET_FORCINGS
+    )
+
+    config["spatial"]["payu"] = config["spatial"].get("payu", {})
+    config["spatial"]["payu"]["config"] = config["spatial"]["payu"].get("config", {})
+    config["spatial"]["payu"]["args"] = config["spatial"]["payu"].get("args")
+
+    # Default values for fluxsite
     config["fluxsite"] = config.get("fluxsite", {})
 
     config["fluxsite"]["multiprocess"] = config["fluxsite"].get(
