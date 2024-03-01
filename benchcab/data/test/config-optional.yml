@@ -11,6 +11,14 @@ fluxsite:
     storage:
       - scratch/$PROJECT
 
+spatial:
+  met_forcings:
+    crujra_access: https://github.com/CABLE-LSM/cable_example.git
+  payu:
+    config:
+      walltime: "1:00:00"
+    args: -n 2
+
 science_configurations:
   - cable:
       cable_user: 

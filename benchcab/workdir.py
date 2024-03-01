@@ -34,3 +34,13 @@ def setup_fluxsite_directory_tree():
     """Generate the directory structure used by `benchcab`."""
     for path in internal.FLUXSITE_DIRS.values():
         mkdir(path, parents=True, exist_ok=True)
+
+
+def setup_spatial_directory_tree():
+    """Generate the directory structure for running spatial tests."""
+    for path in [
+        internal.SPATIAL_RUN_DIR,
+        internal.SPATIAL_TASKS_DIR,
+        internal.PAYU_LABORATORY_DIR,
+    ]:
+        mkdir(path, parents=True, exist_ok=True)

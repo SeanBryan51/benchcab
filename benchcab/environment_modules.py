@@ -14,7 +14,7 @@ sys.path.append("/opt/Modules/v4.3.0/init")
 try:
     from python import module
 except ImportError:
-    print(
+    get_logger().error(
         "Environment modules error: unable to import "
         "initialization script for python."
     )

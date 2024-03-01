@@ -20,7 +20,6 @@ FLUXSITE_DEFAULT_PBS: PBSConfig = {
     "walltime": "6:00:00",
     "storage": [],
 }
-MPI = False
 FLUXSITE_DEFAULT_MULTIPROCESS = True
 
 # DIRECTORY PATHS/STRUCTURE:
@@ -70,17 +69,43 @@ FLUXSITE_DIRS["ANALYSIS"] = FLUXSITE_DIRS["RUN"] / "analysis"
 # Relative path to directory that stores bitwise comparison results
 FLUXSITE_DIRS["BITWISE_CMP"] = FLUXSITE_DIRS["ANALYSIS"] / "bitwise-comparisons"
 
-# Path to met files:
+# Relative path to root directory for CABLE spatial runs
+SPATIAL_RUN_DIR = RUN_DIR / "spatial"
+
+# Relative path to tasks directory (contains payu control directories configured
+# for each spatial task)
+SPATIAL_TASKS_DIR = SPATIAL_RUN_DIR / "tasks"
+
+# A custom payu laboratory directory for payu runs
+PAYU_LABORATORY_DIR = RUN_DIR / "payu-laboratory"
+
+# Path to PLUMBER2 site forcing data directory (doi: 10.25914/5fdb0902607e1):
 MET_DIR = Path("/g/data/ks32/CLEX_Data/PLUMBER2/v1-0/Met/")
+
+# Default met forcings to use in the spatial test suite. Each met
+# forcing has a corresponding payu experiment that is configured to run CABLE
+# with that forcing.
+SPATIAL_DEFAULT_MET_FORCINGS = {
+    "crujra_access": "https://github.com/CABLE-LSM/cable_example.git",
+}
 
 # CABLE SVN root url:
 CABLE_SVN_ROOT = "https://trac.nci.org.au/svn/cable"
+
+# Relative path to temporary build directory (serial)
+TMP_BUILD_DIR = Path("offline", ".tmp")
+
+# Relative path to temporary build directory (MPI)
+TMP_BUILD_DIR_MPI = Path("offline", ".mpitmp")
 
 # CABLE GitHub URL:
 CABLE_GIT_URL = "https://github.com/CABLE-LSM/CABLE.git"
 
 # CABLE executable file name:
-CABLE_EXE = "cable-mpi" if MPI else "cable"
+CABLE_EXE = "cable"
+
+# CABLE MPI executable file name:
+CABLE_MPI_EXE = "cable-mpi"
 
 # CABLE namelist file name:
 CABLE_NML = "cable.nml"
