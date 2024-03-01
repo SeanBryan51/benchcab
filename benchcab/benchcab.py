@@ -227,7 +227,11 @@ class Benchcab:
         rev_number_log = ""
 
         for model in self._get_models(config):
-            model.repo.checkout()
+            try:
+                model.repo.checkout()
+            except Exception:
+                self.logger.error("Try using `benchcab clean realisations` first")
+                sys.exit(1)
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
 
         rev_number_log_path = next_path("rev_number-*.log")
@@ -317,10 +321,12 @@ class Benchcab:
         else:
             self.fluxsite_submit_job(config_path, skip)
 
-    def clean(self, config_path: str):
-        """Endpoint for cleaning runs uirectory ig."""
-        clean_realisation_files()
-        clean_submission_files()
+    def clean(self, config_path: str, clean_option: str):
+        """Endpoint for `benchcab clean`."""
+        if clean_option in ["all", "realisations"]:
+            clean_realisation_files()
+        if clean_option in ["all", "submissions"]:
+            clean_submission_files()
 
     def spatial_setup_work_directory(self, config_path: str):
         """Endpoint for `benchcab spatial-setup-work-dir`."""

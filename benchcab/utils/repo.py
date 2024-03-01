@@ -50,13 +50,16 @@ class LocalRepo(Repo):
     """Concrete implementation of the `Repo` class using local path backend."""
 
     def __init__(self, local_path: str, path: str) -> None:
-        """Return a LocalRepo instance.
+        """_summary_.
 
         Parameters
         ----------
+        local_path : str
+            Path for local checkout of CABLE
         path : str
-            Path of local CABLE branch
-        """        
+            Directory where CABLE is symlinked
+
+        """
         self.name = Path(local_path).name
         self.local_path = local_path
         self.path = path / self.name if path.is_dir() else path
@@ -88,6 +91,7 @@ class LocalRepo(Repo):
 
         """
         return Path(self.path).absolute()
+
 
 class GitRepo(Repo):
     """A concrete implementation of the `Repo` class using a Git backend.
