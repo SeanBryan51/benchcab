@@ -48,7 +48,7 @@ realisations:
             type: "dict"
             excludes: ["git", "svn"]
             schema:
-              local_path:
+              path:
                 type: "string"
                 required: true
       name:
