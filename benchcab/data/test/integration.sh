@@ -18,6 +18,7 @@ mkdir -p $TEST_DIR
 # Clone local checkout for CABLE
 git clone $CABLE_REPO $CABLE_DIR
 cd $CABLE_DIR
+# Note: This is temporary, to be removed once #258 is fixed
 git reset --hard 67a52dc5721f0da78ee7d61798c0e8a804dcaaeb
 
 # Clone the example repo
@@ -35,8 +36,7 @@ realisations:
   - repo:
       git:
         branch: main
-        commit: 67a52dc5721f0da78ee7d61798c0e8a804dcaaeb
-
+        commit: 67a52dc5721f0da78ee7d61798c0e8a804dcaaeb  # Note: This is temporary, to be removed once #258 is fixed
 modules: [
   intel-compiler/2021.1.1,
   netcdf/4.7.4,

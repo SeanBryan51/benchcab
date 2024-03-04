@@ -230,8 +230,11 @@ class Benchcab:
             try:
                 model.repo.checkout()
             except Exception:
-                self.logger.error("Try using `benchcab clean realisations` first")
-                sys.exit(1)
+                msg = "Try using `benchcab clean realisations` first"
+                self.logger.error(
+                    "Model checkout failed, probably due to existing realisation name"
+                )
+                raise FileExistsError(msg)
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
 
         rev_number_log_path = next_path("rev_number-*.log")

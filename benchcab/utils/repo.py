@@ -85,7 +85,7 @@ class LocalRepo(Repo):
             Human readable string describing the latest revision.
 
         """
-        return f"Local CABLE build: {self.name}"
+        return f"Local CABLE build: {Path(self.local_path).absolute().as_posix}"
 
     def get_branch_name(self) -> str:
         """Return the branch name of the source code.
