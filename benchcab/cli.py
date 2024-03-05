@@ -231,12 +231,18 @@ def generate_parser(app: Benchcab) -> argparse.ArgumentParser:
         help="Cleanup files created by running benchcab.",
         description="""Removes src/ and runs/ directories, along with log files in the 
         project root directory. The user has to specify which stage of files to remove 
-        via \{all, realisations, submissions\} subcommand""",
+        via \{all, realisations, submissions\} subcommand.""",
         add_help=False,
     )
 
     parser_clean.add_argument(
-        "clean_option", choices=["all", "realisations", "submissions"]
+        "clean_option",
+        choices=["all", "realisations", "submissions"],
+        help="""Can be one of three options:
+
+        submissions: deletes src/ and revision log files
+        realisations: deletes runs/ and benchmark submission files
+        all: deletes in both stages of submissions and realisations""",
     )
 
     parser_clean.set_defaults(func=app.clean)

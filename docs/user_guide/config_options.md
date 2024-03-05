@@ -352,6 +352,23 @@ realisations:
 
 : **Default:** URL of the [CABLE GitHub repository][cable-github], _optional key_. :octicons-dash-24: Specify the GitHub repository url to clone from when checking out the branch.
 
+#### [`local`](#+repo.local){ #+repo.local}
+
+Contains settings to specify CABLE checkouts on a local repository.
+
+This key is _optional_. No default.
+
+```yaml
+realisations:
+  - repo:
+      local:
+        path: /scratch/tm70/ab1234/CABLE
+```
+
+[`path`](#+repo.local.path){ #+repo.local.path}
+
+: **Default:** _required key, no default_. :octicons-dash-24: Specify the local checkout path of CABLE branch.
+
 ### [name](#name)
 
 : **Default:** base name of [branch_path](#+repo.svn.branch_path) if an SVN repository is given, for Git repositories the default is the branch name, _optional key_. :octicons-dash-24: An alias name used internally by `benchcab` for the branch. The `name` key also specifies the directory name of the source code when retrieving from SVN or GitHub.

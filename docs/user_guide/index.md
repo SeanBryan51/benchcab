@@ -91,6 +91,12 @@ The tool will follow the steps:
 3. Setup and launch a PBS job to run the flux site simulations in parallel. When `benchcab` launches the PBS job, it will print out the job ID to the terminal. You can check the status of the job with `qstat`. `benchcab` will not warn you when the simulations are over.
 4. Setup and run an ensemble of offline spatial runs using the [`payu`][payu-github] framework.
 
+!!! info
+    In case the code branches are already checked out before running Step (1) - `benchcab` will fail. This could happen on re-runs of `benchcab`. In that case, run `benchcab clean realisations` before the `checkout` step.
+
+!!! warning
+    It is dangerous to delete `src/` via `rm -rf`, since `src/` may contain symlinks to local directories that could also be affected. Use `benchcab clean realisations` instead, which would also delete unecessary log files like `rev_number-*.log`. 
+
 !!! tip "Expected output"
 
     You can see [an example of the expected output](expected_output.md) printed out to the screen by `benchcab run` to check if the tool has worked as expected.
