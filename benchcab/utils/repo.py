@@ -46,6 +46,59 @@ class Repo(AbstractBaseClass):
         """
 
 
+class LocalRepo(Repo):
+    """Concrete implementation of the `Repo` class using local path backend."""
+
+    def __init__(self, path: str, realisation_path: str) -> None:
+        """_summary_.
+
+        Parameters
+        ----------
+        realisation_path : str
+            Path for local checkout of CABLE
+        path : str
+            Directory where CABLE is symlinked from, assigned as `local_path`
+
+        """
+        self.name = Path(path).name
+        self.local_path = path
+        self.realisation_path = (
+            realisation_path / self.name
+            if realisation_path.is_dir()
+            else realisation_path
+        )
+        self.logger = get_logger()
+
+    def checkout(self):
+        """Checkout the source code."""
+        self.realisation_path.symlink_to(self.local_path)
+        self.logger.info(
+            f"Created symlink from to {self.realisation_path} named {self.name}"
+        )
+
+    def get_revision(self) -> str:
+        """Return the latest revision of the source code.
+
+        Returns
+        -------
+        str
+            Human readable string describing the latest revision.
+
+        """
+        return f"Local CABLE build: {Path(self.local_path).absolute().as_posix}"
+
+    def get_branch_name(self) -> str:
+        """Return the branch name of the source code.
+
+        Returns
+        -------
+        str
+            Branch name of the source code.
+
+        """
+        return Path(self.realisation_path).absolute().as_posix()
+
+
 class GitRepo(Repo):
     """A concrete implementation of the `Repo` class using a Git backend.
 
@@ -59,7 +112,11 @@ class GitRepo(Repo):
     subprocess_handler = SubprocessWrapper()
 
     def __init__(
-        self, url: str, branch: str, path: Path, commit: Optional[str] = None
+        self,
+        url: str,
+        branch: str,
+        realisation_path: Path,
+        commit: Optional[str] = None,
     ) -> None:
         """Return a `GitRepo` instance.
 
@@ -69,7 +126,7 @@ class GitRepo(Repo):
             URL pointing to the GitHub repository.
         branch: str
             Name of a branch on the GitHub repository.
-        path: Path
+        realisation_path: Path
             Path to a directory in which the repository is cloned into. If
             `path` points to an existing directory, the repository will be
             cloned into `path / branch`.
@@ -80,7 +137,9 @@ class GitRepo(Repo):
         """
         self.url = url
         self.branch = branch
-        self.path = path / branch if path.is_dir() else path
+        self.realisation_path = (
+            realisation_path / branch if realisation_path.is_dir() else realisation_path
+        )
         self.commit = commit
         self.logger = get_logger()
 
@@ -90,11 +149,11 @@ class GitRepo(Repo):
         # remote progress. See
         # https://gitpython.readthedocs.io/en/stable/reference.html#git.remote.RemoteProgress
         self.subprocess_handler.run_cmd(
-            f"git clone --branch {self.branch} -- {self.url} {self.path}"
+            f"git clone --branch {self.branch} -- {self.url} {self.realisation_path}"
         )
         if self.commit:
             self.logger.debug(f"Reset to commit {self.commit} (hard reset)")
-            repo = git.Repo(self.path)
+            repo = git.Repo(self.realisation_path)
             repo.head.reset(self.commit, working_tree=True)
         self.logger.info(
             f"Successfully checked out {self.branch} - {self.get_revision()}"
@@ -109,7 +168,7 @@ class GitRepo(Repo):
             Human readable string describing the latest revision.
 
         """
-        repo = git.Repo(self.path)
+        repo = git.Repo(self.realisation_path)
         return f"commit {repo.head.commit.hexsha}"
 
     def get_branch_name(self) -> str:
@@ -140,7 +199,7 @@ class SVNRepo(Repo):
         self,
         svn_root: str,
         branch_path: str,
-        path: Path,
+        realisation_path: Path,
         revision: Optional[int] = None,
     ) -> None:
         """Return an `SVNRepo` instance.
@@ -151,7 +210,7 @@ class SVNRepo(Repo):
             URL pointing to the root of the SVN repository.
         branch_path: str
             Path to a branch relative to `svn_root`.
-        path: Path
+        realisation_path: Path
             Path to a directory in which the branch is checked out into. If
             `path` points to an existing directory, the repository will be
             cloned into `path / <branch_name>` where `<branch_name>` is the
@@ -164,7 +223,11 @@ class SVNRepo(Repo):
         self.svn_root = svn_root
         self.branch_path = branch_path
         self.revision = revision
-        self.path = path / Path(branch_path).name if path.is_dir() else path
+        self.realisation_path = (
+            realisation_path / Path(branch_path).name
+            if realisation_path.is_dir()
+            else realisation_path
+        )
         self.logger = get_logger()
 
     def checkout(self):
@@ -174,12 +237,12 @@ class SVNRepo(Repo):
         if self.revision:
             cmd += f" -r {self.revision}"
 
-        cmd += f" {internal.CABLE_SVN_ROOT}/{self.branch_path} {self.path}"
+        cmd += f" {internal.CABLE_SVN_ROOT}/{self.branch_path} {self.realisation_path}"
 
         self.subprocess_handler.run_cmd(cmd)
 
         self.logger.info(
-            f"Successfully checked out {self.path.name} - {self.get_revision()}"
+            f"Successfully checked out {self.realisation_path.name} - {self.get_revision()}"
         )
 
     def get_revision(self) -> str:
@@ -192,7 +255,7 @@ class SVNRepo(Repo):
 
         """
         proc = self.subprocess_handler.run_cmd(
-            f"svn info --show-item last-changed-revision {self.path}",
+            f"svn info --show-item last-changed-revision {self.realisation_path}",
             capture_output=True,
         )
         return f"last-changed-revision {proc.stdout.strip()}"
@@ -233,7 +296,11 @@ def create_repo(spec: dict, path: Path) -> Repo:
     if "git" in spec:
         if "url" not in spec["git"]:
             spec["git"]["url"] = internal.CABLE_GIT_URL
-        return GitRepo(path=path, **spec["git"])
+        return GitRepo(realisation_path=path, **spec["git"])
     if "svn" in spec:
-        return SVNRepo(svn_root=internal.CABLE_SVN_ROOT, path=path, **spec["svn"])
+        return SVNRepo(
+            svn_root=internal.CABLE_SVN_ROOT, realisation_path=path, **spec["svn"]
+        )
+    if "local" in spec:
+        return LocalRepo(realisation_path=path, **spec["local"])
     raise RepoSpecError

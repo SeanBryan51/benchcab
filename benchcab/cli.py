@@ -224,4 +224,26 @@ def generate_parser(app: Benchcab) -> argparse.ArgumentParser:
     )
     parser_spatial_run_tasks.set_defaults(func=app.spatial_run_tasks)
 
+    # subcommand: 'benchcab clean'
+    parser_clean = subparsers.add_parser(
+        "clean",
+        parents=[args_help, args_subcommand],
+        help="Cleanup files created by running benchcab.",
+        description="""Removes src/ and runs/ directories, along with log files in the 
+        project root directory. The user has to specify which stage of files to remove 
+        via \{all, realisations, submissions\} subcommand.""",
+        add_help=False,
+    )
+
+    parser_clean.add_argument(
+        "clean_option",
+        choices=["all", "realisations", "submissions"],
+        help="""Can be one of three options:
+
+        realisations: deletes src/
+        submissions: deletes runs/ and benchmark submission files
+        all: deletes in both stages of submissions and realisations""",
+    )
+
+    parser_clean.set_defaults(func=app.clean)
     return main_parser

@@ -4,18 +4,28 @@
 """Functions for generating the directory structure used for `benchcab`."""
 
 import shutil
+from pathlib import Path
 
 from benchcab import internal
 from benchcab.utils.fs import mkdir
 
 
-def clean_directory_tree():
-    """Remove pre-existing directories in current working directory."""
+def clean_realisation_files():
+    """Remove files/directories related to CABLE realisation source codes."""
     if internal.SRC_DIR.exists():
+        for realisation in internal.SRC_DIR.iterdir():
+            if realisation.is_symlink():
+                realisation.unlink()
         shutil.rmtree(internal.SRC_DIR)
 
+
+def clean_submission_files():
+    """Remove files/directories related to PBS jobs."""
     if internal.RUN_DIR.exists():
         shutil.rmtree(internal.RUN_DIR)
+
+    for pbs_job_file in Path.cwd().glob(f"{internal.QSUB_FNAME}*"):
+        pbs_job_file.unlink()
 
 
 def setup_fluxsite_directory_tree():

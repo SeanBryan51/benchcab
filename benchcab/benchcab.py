@@ -22,6 +22,8 @@ from benchcab.utils.pbs import render_job_script
 from benchcab.utils.repo import create_repo
 from benchcab.utils.subprocess import SubprocessWrapper, SubprocessWrapperInterface
 from benchcab.workdir import (
+    clean_realisation_files,
+    clean_submission_files,
     setup_fluxsite_directory_tree,
     setup_spatial_directory_tree,
 )
@@ -74,7 +76,7 @@ class Benchcab:
             self.logger.error("benchcab is currently implemented only on Gadi")
             sys.exit(1)
 
-        namelist_dir = Path(internal.CWD / internal.NAMELIST_DIR)
+        namelist_dir = Path(internal.NAMELIST_DIR)
         if not namelist_dir.exists():
             self.logger.error(
                 "Cannot find 'namelists' directory in current working directory"
@@ -225,7 +227,14 @@ class Benchcab:
         rev_number_log = ""
 
         for model in self._get_models(config):
-            model.repo.checkout()
+            try:
+                model.repo.checkout()
+            except Exception:
+                msg = "Try using `benchcab clean realisations` first"
+                self.logger.error(
+                    "Model checkout failed, probably due to existing realisation name"
+                )
+                raise FileExistsError(msg)
             rev_number_log += f"{model.name}: {model.repo.get_revision()}\n"
 
         rev_number_log_path = next_path("rev_number-*.log")
@@ -314,6 +323,13 @@ class Benchcab:
                 self.fluxsite_bitwise_cmp(config_path)
         else:
             self.fluxsite_submit_job(config_path, skip)
+
+    def clean(self, config_path: str, clean_option: str):
+        """Endpoint for `benchcab clean`."""
+        if clean_option in ["all", "realisations"]:
+            clean_realisation_files()
+        if clean_option in ["all", "submissions"]:
+            clean_submission_files()
 
     def spatial_setup_work_directory(self, config_path: str):
         """Endpoint for `benchcab spatial-setup-work-dir`."""
