@@ -5,11 +5,12 @@ the working directory used for testing is cleaned up in the `_run_around_tests`
 pytest autouse fixture.
 """
 
+import logging
 from pathlib import Path
 
 import pytest
 
-from benchcab.utils.fs import mkdir, next_path
+from benchcab.utils.fs import chdir, mkdir, next_path
 
 
 class TestNextPath:
@@ -28,6 +29,27 @@ class TestNextPath:
         """Success case: get next path in 'non-empty' directory."""
         next_path(pattern).touch()
         assert next_path(pattern) == Path("rev_number-2.log")
+
+
+class TestChdir:
+    """Tests for `chdir()`."""
+
+    @pytest.fixture(autouse=True)
+    def original_cwd_path(self) -> Path:
+        """Get current working directory before running any tests."""
+        return Path.cwd()
+
+    def test_chdir(self, caplog, original_cwd_path: Path, tmp_path: Path):
+        """Success case: Change current working directory to `tmp_path` within context."""
+        caplog.set_level(logging.DEBUG)
+        assert original_cwd_path != tmp_path  # chdir should have different CWD
+        assert Path.cwd() == original_cwd_path
+        with chdir(tmp_path):
+            log_msg = f"Changing current working directory from {original_cwd_path} to {tmp_path}"
+            assert caplog.record_tuples == [("benchcab", logging.DEBUG, log_msg)]
+            assert Path.cwd() == tmp_path
+
+        assert Path.cwd() == original_cwd_path
 
 
 class TestMkdir:

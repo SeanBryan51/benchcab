@@ -15,6 +15,7 @@ from benchcab.utils import get_logger
 def chdir(newdir: Path):
     """Context manager `cd`."""
     prevdir = Path.cwd()
+    get_logger().debug(f"Changing current working directory from {prevdir} to {newdir}")
     os.chdir(newdir.expanduser())
     try:
         yield
