@@ -76,7 +76,7 @@ class Benchcab:
             self.logger.error("benchcab is currently implemented only on Gadi")
             sys.exit(1)
 
-        namelist_dir = Path(internal.CWD / internal.NAMELIST_DIR)
+        namelist_dir = Path(internal.NAMELIST_DIR)
         if not namelist_dir.exists():
             self.logger.error(
                 "Cannot find 'namelists' directory in current working directory"

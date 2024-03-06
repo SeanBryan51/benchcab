@@ -57,7 +57,7 @@ class LocalRepo(Repo):
         realisation_path : str
             Path for local checkout of CABLE
         path : str
-            Directory where CABLE is symlinked from
+            Directory where CABLE is symlinked from, assigned as `local_path`
 
         """
         self.name = Path(path).name
@@ -137,7 +137,7 @@ class GitRepo(Repo):
         """
         self.url = url
         self.branch = branch
-        self.path = (
+        self.realisation_path = (
             realisation_path / branch if realisation_path.is_dir() else realisation_path
         )
         self.commit = commit
@@ -149,11 +149,11 @@ class GitRepo(Repo):
         # remote progress. See
         # https://gitpython.readthedocs.io/en/stable/reference.html#git.remote.RemoteProgress
         self.subprocess_handler.run_cmd(
-            f"git clone --branch {self.branch} -- {self.url} {self.path}"
+            f"git clone --branch {self.branch} -- {self.url} {self.realisation_path}"
         )
         if self.commit:
             self.logger.debug(f"Reset to commit {self.commit} (hard reset)")
-            repo = git.Repo(self.path)
+            repo = git.Repo(self.realisation_path)
             repo.head.reset(self.commit, working_tree=True)
         self.logger.info(
             f"Successfully checked out {self.branch} - {self.get_revision()}"
@@ -168,7 +168,7 @@ class GitRepo(Repo):
             Human readable string describing the latest revision.
 
         """
-        repo = git.Repo(self.path)
+        repo = git.Repo(self.realisation_path)
         return f"commit {repo.head.commit.hexsha}"
 
     def get_branch_name(self) -> str:
@@ -223,7 +223,7 @@ class SVNRepo(Repo):
         self.svn_root = svn_root
         self.branch_path = branch_path
         self.revision = revision
-        self.path = (
+        self.realisation_path = (
             realisation_path / Path(branch_path).name
             if realisation_path.is_dir()
             else realisation_path
@@ -237,12 +237,12 @@ class SVNRepo(Repo):
         if self.revision:
             cmd += f" -r {self.revision}"
 
-        cmd += f" {internal.CABLE_SVN_ROOT}/{self.branch_path} {self.path}"
+        cmd += f" {internal.CABLE_SVN_ROOT}/{self.branch_path} {self.realisation_path}"
 
         self.subprocess_handler.run_cmd(cmd)
 
         self.logger.info(
-            f"Successfully checked out {self.path.name} - {self.get_revision()}"
+            f"Successfully checked out {self.realisation_path.name} - {self.get_revision()}"
         )
 
     def get_revision(self) -> str:
@@ -255,7 +255,7 @@ class SVNRepo(Repo):
 
         """
         proc = self.subprocess_handler.run_cmd(
-            f"svn info --show-item last-changed-revision {self.path}",
+            f"svn info --show-item last-changed-revision {self.realisation_path}",
             capture_output=True,
         )
         return f"last-changed-revision {proc.stdout.strip()}"

@@ -4,6 +4,7 @@
 """Functions for generating the directory structure used for `benchcab`."""
 
 import shutil
+from pathlib import Path
 
 from benchcab import internal
 from benchcab.utils.fs import mkdir
@@ -17,16 +18,13 @@ def clean_realisation_files():
                 realisation.unlink()
         shutil.rmtree(internal.SRC_DIR)
 
-    for rev_log_file in internal.CWD.glob("rev_number-*.log"):
-        rev_log_file.unlink()
-
 
 def clean_submission_files():
     """Remove files/directories related to PBS jobs."""
     if internal.RUN_DIR.exists():
         shutil.rmtree(internal.RUN_DIR)
 
-    for pbs_job_file in internal.CWD.glob(f"{internal.QSUB_FNAME}*"):
+    for pbs_job_file in Path.cwd().glob(f"{internal.QSUB_FNAME}*"):
         pbs_job_file.unlink()
 
 

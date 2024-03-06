@@ -10,7 +10,6 @@ from typing import List
 
 import pytest
 
-from benchcab import internal
 from benchcab.workdir import (
     clean_realisation_files,
     clean_submission_files,
@@ -63,48 +62,37 @@ class TestSetupSpatialDirectoryTree:
 class TestCleanFiles:
     """Tests for `clean_realisation_files()` and `clean_submission_files()`."""
 
-    # Reset internal.CWD to suit pytest testing infrastructure
-    @pytest.fixture(autouse=True)
-    def _set_internal_cwd(self, monkeypatch):
-        """Sets internal.CWD to pytest's working directory."""
-        monkeypatch.setattr(internal, "CWD", Path.cwd())
-
     # Helper functions
-    def _create_files_in_cwd(self, filenames: List[str]):
+    def _create_files_in_cwd(self, filenames: List[Path]):
         """Given a list of filenames, create files in current working directory."""
         for filename in filenames:
-            filename_path = internal.CWD / filename
-            filename_path.touch()
+            filename.touch()
 
-    def _check_if_any_files_exist(self, filenames: List[str]):
+    def _check_if_any_files_exist(self, filenames: List[Path]):
         """Given a list of filenames, check if any of them exist w.r.t. current working directory."""
-        return any((internal.CWD / filename).exists() for filename in filenames)
+        return any(filename.exists() for filename in filenames)
 
     @pytest.fixture()
     def src_path(self) -> Path:
         """Mock internal.SRC_DIR."""
-        src_path = internal.CWD / Path("src")
+        src_path = Path("src")
         src_path.mkdir()
         return src_path
 
     @pytest.fixture()
     def runs_path(self) -> Path:
         """Mock internal.RUN_DIR."""
-        runs_path = internal.CWD / Path("runs")
+        runs_path = Path("runs")
         runs_path.mkdir()
         return runs_path
 
     @pytest.fixture()
-    def revision_log_files(self) -> List[Path]:
-        """Create sample files of the form rev_number-*.log."""
-        rev_log_files = ["rev_number-0.log", "rev_number-200.log"]
-        self._create_files_in_cwd(rev_log_files)
-        return rev_log_files
-
-    @pytest.fixture()
     def pbs_job_files(self) -> List[Path]:
         """Create sample files of the form benchmark_cable_qsub.sh*."""
-        pbs_job_files = ["benchmark_cable_qsub.sh.o21871", "benchmark_cable_qsub.sh"]
+        pbs_job_files = [
+            Path("benchmark_cable_qsub.sh.o21871"),
+            Path("benchmark_cable_qsub.sh"),
+        ]
         self._create_files_in_cwd(pbs_job_files)
         return pbs_job_files
 
@@ -134,21 +122,16 @@ class TestCleanFiles:
         self,
         local_cable_src_path: Path,
         src_path_with_local: Path,
-        revision_log_files: List[Path],
     ):
         """Success case: Local realisation files created by benchcab are removed after clean."""
         clean_realisation_files()
         assert local_cable_src_path.exists()
         assert not src_path_with_local.exists()
-        assert not self._check_if_any_files_exist(revision_log_files)
 
-    def test_clean_realisation_files_git(
-        self, src_path_with_git: Path, revision_log_files: Path
-    ):
+    def test_clean_realisation_files_git(self, src_path_with_git: Path):
         """Success case: Git realisation files created by benchcab are removed after clean."""
         clean_realisation_files()
         assert not src_path_with_git.exists()
-        assert not self._check_if_any_files_exist(revision_log_files)
 
     def test_clean_submission_files(self, runs_path, pbs_job_files: List[Path]):
         """Success case: Submission files created by benchcab are removed after clean."""

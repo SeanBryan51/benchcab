@@ -240,8 +240,8 @@ def generate_parser(app: Benchcab) -> argparse.ArgumentParser:
         choices=["all", "realisations", "submissions"],
         help="""Can be one of three options:
 
-        submissions: deletes src/ and revision log files
-        realisations: deletes runs/ and benchmark submission files
+        realisations: deletes src/
+        submissions: deletes runs/ and benchmark submission files
         all: deletes in both stages of submissions and realisations""",
     )
 
