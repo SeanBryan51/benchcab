@@ -23,6 +23,6 @@ jobs:
         with:
           python-version: '3.9'
           meta_yaml_dir: .conda
-          user: accessnri
-          label: main
+          user: seanbryan
+          label: master
           token: ${{ secrets.ANACONDA_TOKEN }}
